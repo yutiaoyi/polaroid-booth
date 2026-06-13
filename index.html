@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Seoul Film Booth</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css?v=20260613-restore-flow">
+  </head>
+  <body>
+    <nav class="top-mode-nav" id="topModeNav" aria-label="功能导航">
+      <button class="top-mode-button is-active" type="button" data-app-mode="sketch">手绘人生四格</button>
+      <button class="top-mode-button" type="button" data-app-mode="polaroid">旧版拍立得</button>
+      <button class="top-mode-button" type="button" data-app-mode="legacyFourCut">旧版四格</button>
+    </nav>
+
+    <svg class="sketch-defs" aria-hidden="true" focusable="false">
+      <defs>
+        <filter id="sketchRough" x="-8%" y="-8%" width="116%" height="116%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" seed="4" result="noise"></feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G"></feDisplacementMap>
+        </filter>
+      </defs>
+    </svg>
+
+    <main class="sketch-flow is-active" aria-label="菲林人生四格">
+      <section class="sketch-step is-active" id="sketchLanding" data-sketch-step="landing">
+        <div class="landing-scene">
+          <div class="landing-booth wobble-line">
+            <div class="booth-doodles" aria-hidden="true">
+              <svg class="doodle-star doodle-star-a" viewBox="0 0 40 40"><path d="M20 2 L24 14 L37 14 L27 22 L31 36 L20 28 L9 36 L13 22 L3 14 L16 14 Z" fill="none" stroke="#141414" stroke-width="2.2" filter="url(#sketchRough)"></path></svg>
+              <svg class="doodle-star doodle-star-b" viewBox="0 0 40 40"><path d="M20 4 L23 13 L33 13 L25 19 L28 30 L20 24 L12 30 L15 19 L7 13 L17 13 Z" fill="none" stroke="#c94b3a" stroke-width="2" filter="url(#sketchRough)"></path></svg>
+              <svg class="doodle-spark doodle-spark-a" viewBox="0 0 48 48"><path d="M24 4 Q26 20 44 24 Q26 28 24 44 Q22 28 4 24 Q22 20 24 4" fill="none" stroke="#257d7a" stroke-width="2" filter="url(#sketchRough)"></path></svg>
+            </div>
+
+            <header class="booth-sign doodle-box">
+              <svg class="doodle-outline" viewBox="0 0 480 96" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M8 10 C 76 4 158 10 240 8 C 322 6 408 8 472 10 C 478 28 474 68 470 86 C 390 92 318 86 240 88 C 162 90 84 88 10 86 C 4 68 6 30 8 10 Z" fill="rgba(255,255,255,0.28)" stroke="#050505" stroke-width="4.5" filter="url(#sketchRough)"></path>
+                <path d="M22 22 C 92 18 162 24 240 22 C 318 20 386 22 456 22 C 460 38 458 62 454 74 C 370 78 312 74 240 76 C 168 78 88 76 24 74 C 20 60 20 38 22 22 Z" fill="rgba(255,255,255,0.48)" stroke="#050505" stroke-width="3.6" filter="url(#sketchRough)"></path>
+              </svg>
+              <span>PHOTOBOOTH</span>
+            </header>
+
+            <div class="sign-supports" aria-hidden="true">
+              <span></span>
+              <span></span>
+            </div>
+
+            <div class="booth-facade doodle-box">
+              <svg class="doodle-outline" viewBox="0 0 920 720" preserveAspectRatio="none" aria-hidden="true">
+                <path d="M8 24 C 140 14 280 22 460 18 C 640 14 780 18 912 26 C 918 180 916 350 916 540 C 916 620 920 682 912 712 C 730 720 612 714 460 714 C 308 714 176 720 10 708 C 4 650 8 520 8 360 C 8 180 4 70 8 24 Z" fill="rgba(255,255,255,0.18)" stroke="#050505" stroke-width="4.6" filter="url(#sketchRough)"></path>
+                <path d="M8 72 C 130 78 300 70 462 70 C 624 70 790 72 916 72" fill="none" stroke="#050505" stroke-width="3.6" filter="url(#sketchRough)"></path>
+                <path d="M456 72 C 466 226 462 386 464 714" fill="none" stroke="#050505" stroke-width="3.4" filter="url(#sketchRough)"></path>
+                <path d="M748 72 C 744 226 748 386 748 714" fill="none" stroke="#050505" stroke-width="3.4" filter="url(#sketchRough)"></path>
+              </svg>
+
+              <div class="booth-top-rail" aria-hidden="true"></div>
+
+              <div class="booth-left booth-left-panel">
+                <div class="featured-display doodle-box">
+                  <svg class="doodle-outline" viewBox="0 0 360 182" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M6 10 C 82 4 152 8 180 8 C 208 8 292 4 354 12 C 360 54 356 122 350 174 C 270 182 210 174 180 176 C 150 178 82 180 8 174 C 2 126 2 54 6 10 Z" fill="rgba(255,255,255,0.24)" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M24 28 C 86 24 144 30 180 28 C 216 26 286 24 338 28 C 340 68 338 116 334 158 C 264 160 220 156 180 158 C 140 160 78 160 26 156 C 22 112 22 72 24 28 Z" fill="rgba(255,255,255,0.42)" stroke="#050505" stroke-width="3.6" filter="url(#sketchRough)"></path>
+                  </svg>
+                  <div class="tiny-strip strip-sepia tilt-left"></div>
+                  <div class="tiny-strip strip-mono"></div>
+                  <div class="tiny-strip strip-night tilt-right"></div>
+                  <div class="tiny-strip strip-collage"></div>
+                  <div class="tiny-strip strip-color tilt-right"></div>
+                </div>
+                <p class="tiny-note">featured<br>strips</p>
+                <div class="coin-slot doodle-box" aria-hidden="true">
+                  <svg class="doodle-outline" viewBox="0 0 62 146" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M12 8 C 24 4 48 6 56 12 C 60 32 58 56 56 74 C 56 98 60 124 54 138 C 42 144 22 142 12 136 C 8 108 10 82 10 72 C 10 52 6 28 12 8 Z" fill="rgba(255,255,255,0.2)" stroke="#050505" stroke-width="3.5" filter="url(#sketchRough)"></path>
+                    <circle cx="20" cy="24" r="3.6" fill="none" stroke="#050505" stroke-width="2.6" filter="url(#sketchRough)"></circle>
+                    <circle cx="46" cy="24" r="3.4" fill="none" stroke="#050505" stroke-width="2.6" filter="url(#sketchRough)"></circle>
+                    <circle cx="20" cy="128" r="3.4" fill="none" stroke="#050505" stroke-width="2.6" filter="url(#sketchRough)"></circle>
+                    <circle cx="46" cy="128" r="3.6" fill="none" stroke="#050505" stroke-width="2.6" filter="url(#sketchRough)"></circle>
+                    <path d="M24 92 L38 92 L38 102 L31 108 L24 102 Z" fill="none" stroke="#050505" stroke-width="3" filter="url(#sketchRough)"></path>
+                    <path d="M18 62 C 30 60 42 60 52 62" fill="none" stroke="#050505" stroke-width="3" filter="url(#sketchRough)"></path>
+                    <path d="M22 80 C 32 78 42 78 50 80" fill="none" stroke="#050505" stroke-width="3" filter="url(#sketchRough)"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="booth-curtain-panel">
+                <div class="curtain doodle-curtain" aria-hidden="true">
+                  <svg viewBox="0 0 230 560" preserveAspectRatio="none">
+                    <path d="M28 4 C 22 100 54 180 50 276 C 46 360 56 450 42 524 C 56 548 74 548 88 528 C 100 430 86 360 90 270 C 94 172 78 96 84 4" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M98 4 C 88 108 118 176 112 278 C 106 382 128 470 108 532 C 126 552 154 552 168 530 C 176 430 160 362 166 282 C 174 178 156 96 162 4" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M174 4 C 164 94 188 176 186 284 C 184 394 196 462 190 520 C 204 534 216 536 226 526" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M18 526 C 64 544 122 534 166 536 C 196 538 210 524 226 532" fill="none" stroke="#050505" stroke-width="3.8" filter="url(#sketchRough)"></path>
+                  </svg>
+                </div>
+                <button class="sketch-button enter-button doodle-box" id="sketchEnter" type="button">
+                  <svg class="doodle-outline" viewBox="0 0 230 86" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M8 8 C 44 4 188 6 222 8 C 226 30 226 58 222 80 C 176 82 60 82 8 80 C 4 54 4 30 8 8 Z" fill="rgba(255,255,255,0.7)" stroke="#172232" stroke-width="4.5" filter="url(#sketchRough)"></path>
+                  </svg>
+                  <span>enter ↪</span>
+                </button>
+                <div class="stool doodle-stool" aria-hidden="true">
+                  <svg viewBox="0 0 118 172" preserveAspectRatio="xMidYMax meet">
+                    <path d="M18 44 C 32 24 86 22 104 42 C 108 54 106 68 98 78 C 72 92 36 90 18 76 C 10 62 10 52 18 44 Z" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M20 76 C 36 104 82 108 100 78" fill="none" stroke="#050505" stroke-width="3.5" filter="url(#sketchRough)"></path>
+                    <path d="M58 88 C 58 116 60 140 60 158" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M24 160 C 42 148 80 148 98 160 C 88 172 34 172 24 160 Z" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="booth-side-panel" aria-hidden="true">
+                <div class="side-window doodle-box">
+                  <svg class="doodle-outline" viewBox="0 0 94 210" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M12 10 C 28 6 72 8 84 12 C 90 56 88 158 84 202 C 62 208 32 206 12 202 C 8 154 8 58 12 10 Z" fill="rgba(255,255,255,0.3)" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M34 44 C 46 36 54 32 64 24" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M32 62 C 46 54 58 48 72 38" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M46 178 C 58 170 68 164 76 156" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                    <path d="M64 184 C 72 178 78 174 84 168" fill="none" stroke="#050505" stroke-width="4" filter="url(#sketchRough)"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <footer class="sketch-footer">
+              <span>made by <a href="https://xhslink.com/m/3OxIKd8fa7B" target="_blank" rel="noreferrer">@geekfocus</a></span>
+              <nav class="footer-links" aria-label="页脚链接">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#faq">FAQ</a>
+                <a href="#about">About Me</a>
+                <a href="#contact">Contact Me</a>
+              </nav>
+            </footer>
+
+            <section class="footer-info" aria-label="Project information">
+              <article class="info-panel" id="privacy">
+                <h2>Privacy Policy</h2>
+                <p>Photos are processed locally in your browser. This open-source photo booth does not upload, sell, or share your images, and no account is required to use it.</p>
+              </article>
+
+              <article class="info-panel" id="faq">
+                <h2>FAQ</h2>
+                <details>
+                  <summary>Do my photos leave my device?</summary>
+                  <p>No. Camera frames, uploaded images, and generated strips stay in your browser unless you choose to download or share them yourself.</p>
+                </details>
+                <details>
+                  <summary>Can I use this project for an event or personal page?</summary>
+                  <p>Yes. You can use it as inspiration or adapt it for personal, community, and open-source projects. Please keep proper attribution when you reuse the work.</p>
+                </details>
+                <details>
+                  <summary>Why does the camera ask for permission?</summary>
+                  <p>The browser requires permission before any webpage can access your camera. The app only uses the camera after you choose to start taking photos.</p>
+                </details>
+              </article>
+
+              <article class="info-panel" id="about">
+                <h2>About Me</h2>
+                <p>I am an AI builder and CS PhD working on practical AI products, creative tools, and human-centered software. If you are interested in building useful AI experiences together, I would be happy to collaborate.</p>
+              </article>
+
+              <article class="info-panel" id="contact">
+                <h2>Contact Me</h2>
+                <p>Email me at <a href="mailto:geekfocus.ai@gmail.com">geekfocus.ai@gmail.com</a> if you want to collaborate on AI products, creative tools, or research-driven prototypes.</p>
+              </article>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="sketch-step" id="sketchFrameSelect" data-sketch-step="select">
+        <div class="machine-layout doodle-machine filter-select-layout">
+          <div class="step-note step-note-frame">
+            <span class="step-note-number">1</span>
+            <span>Choose layout and photo ratio</span>
+          </div>
+          <div class="frame-machine doodle-box">
+            <div class="selected-strip wobble-strip" id="sketchFramePreview"></div>
+          </div>
+          <div class="layout-choice-panel" aria-label="选择照片排列方式">
+            <button class="layout-choice-button is-selected" type="button" data-sketch-layout="strip" data-sketch-ratio="portrait" aria-pressed="true">4 x 1 · 3:4</button>
+            <button class="layout-choice-button" type="button" data-sketch-layout="strip" data-sketch-ratio="landscape" aria-pressed="false">4 x 1 · 4:3</button>
+            <button class="layout-choice-button" type="button" data-sketch-layout="grid" data-sketch-ratio="portrait" aria-pressed="false">2 x 2 · 3:4</button>
+            <button class="layout-choice-button" type="button" data-sketch-layout="grid" data-sketch-ratio="landscape" aria-pressed="false">2 x 2 · 4:3</button>
+          </div>
+          <div class="step-note step-note-action">
+            <span class="step-note-number">2</span>
+            <span>Press the button to confirm your setup</span>
+          </div>
+          <div class="side-console doodle-box">
+            <button class="green-button" id="sketchSelectFrame" type="button" aria-label="select frame"></button>
+            <span class="console-slot"></span>
+            <span class="console-box"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sketch-step" id="sketchCameraChoice" data-sketch-step="choice">
+        <div class="machine-layout doodle-machine">
+          <div class="blank-sign doodle-box"></div>
+          <div class="choice-summary doodle-box" id="sketchChoiceSummary" aria-live="polite"></div>
+          <div class="frame-machine camera-choice-machine doodle-box">
+            <button class="sketch-button choice-button" id="sketchTakePhotoEntry" type="button">take photo ◉</button>
+            <button class="sketch-button choice-button" id="sketchUploadEntry" type="button">upload photo ↥</button>
+            <input id="sketchUploadInput" type="file" accept="image/*" hidden>
+          </div>
+          <div class="side-console doodle-box">
+            <span class="console-label">start</span>
+            <button class="green-button is-red" type="button" disabled aria-label="waiting"></button>
+            <span class="console-slot"></span>
+            <span class="console-box"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sketch-step" id="sketchCamera" data-sketch-step="camera">
+        <div class="machine-layout doodle-machine">
+          <div class="blank-sign doodle-box"></div>
+          <div class="eye-label">eye<br>level →</div>
+          <div class="choice-summary live-summary doodle-box" id="sketchLiveSummary" aria-live="polite"></div>
+          <div class="frame-machine live-machine doodle-box">
+              <video id="sketchVideo" class="sketch-video is-camera" autoplay playsinline muted></video>
+            <canvas id="sketchLiveCanvas" class="sketch-live-canvas"></canvas>
+            <div class="shoot-countdown" id="sketchShootCountdown"></div>
+          </div>
+          <div class="filter-toggle filter-mode-panel live-filter-panel" aria-label="选择拍摄滤镜">
+            <input id="sketchFilterToggle" type="checkbox" checked hidden>
+            <div class="filter-mode-actions">
+              <button class="filter-mode-card" type="button" data-sketch-filter="bw" aria-pressed="false">
+                <span class="filter-mode-label">B&amp;W</span>
+                <span>Black and white photo filter</span>
+              </button>
+              <button class="filter-mode-card is-selected" type="button" data-sketch-filter="color" aria-pressed="true">
+                <span class="filter-mode-label">Color</span>
+                <span>Color film photo filter</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="sepia" aria-pressed="false">
+                <span class="filter-mode-label">Sepia</span>
+                <span>Warm brown old photo</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="vintage" aria-pressed="false">
+                <span class="filter-mode-label">Retro</span>
+                <span>Faded warm retro</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="warm" aria-pressed="false">
+                <span class="filter-mode-label">Warm</span>
+                <span>Warm bright skin tone</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="noir" aria-pressed="false">
+                <span class="filter-mode-label">Noir</span>
+                <span>High contrast mono</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="vivid" aria-pressed="false">
+                <span class="filter-mode-label">Vivid</span>
+                <span>Punchy color</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="pastel" aria-pressed="false">
+                <span class="filter-mode-label">Pastel</span>
+                <span>Soft light color</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="dreamy" aria-pressed="false">
+                <span class="filter-mode-label">Dreamy</span>
+                <span>Bright soft glow</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="cinematic" aria-pressed="false">
+                <span class="filter-mode-label">Cine</span>
+                <span>Low-sat film mood</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="blur" aria-pressed="false">
+                <span class="filter-mode-label">Blur</span>
+                <span>Soft focus</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="trix" aria-pressed="false">
+                <span class="filter-mode-label">Tri-X</span>
+                <span>Classic grainy mono</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="acros" aria-pressed="false">
+                <span class="filter-mode-label">Acros</span>
+                <span>Fine soft mono</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="ortho" aria-pressed="false">
+                <span class="filter-mode-label">Ortho</span>
+                <span>Blue-sensitive mono</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="silver" aria-pressed="false">
+                <span class="filter-mode-label">Silver</span>
+                <span>Matte silver print</span>
+              </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="expired" aria-pressed="false">
+                <span class="filter-mode-label">Expired</span>
+                <span>Muted old film</span>
+              </button>
+            </div>
+          </div>
+          <div class="shoot-progress" id="sketchShootProgress" aria-live="polite">ready for 4 shots</div>
+          <div class="price-badge doodle-box">$0<br>=<br>4pics</div>
+          <div class="side-console doodle-box">
+            <span class="console-label">start</span>
+            <button class="green-button shoot-start-button" id="sketchStartShoot" type="button" aria-label="start shooting">start 4 shots</button>
+            <span class="console-slot"></span>
+            <span class="console-box"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="sketch-step" id="sketchPrint" data-sketch-step="print">
+        <div class="print-layout doodle-machine">
+          <div class="delivery-sign doodle-box" id="sketchPrintSign">PHOTOS<br>DELIVERED<br>HERE IN<br><span id="sketchPrintCountdown">2</span> SECONDS<br>↓</div>
+          <div class="printer-body doodle-box">
+            <div class="printer-window">
+              <canvas id="sketchOutputCanvas"></canvas>
+            </div>
+            <div class="printer-doors"></div>
+          </div>
+          <button class="sketch-button pickup-button doodle-box" id="sketchPickup" type="button" disabled>Pick up →</button>
+        </div>
+      </section>
+    </main>
+
+    <main class="app-shell legacy-app">
+      <nav class="sketch-nav" aria-label="功能导航">
+        <div class="nav-mark">film life studio</div>
+        <div class="nav-tabs">
+          <button class="nav-tab is-active" type="button" data-page-target="polaroidPage">拍立得边框</button>
+          <button class="nav-tab" type="button" data-page-target="fourCutPage">菲林人生四格</button>
+        </div>
+      </nav>
+
+      <section class="studio page-view is-active" id="polaroidPage" aria-label="拍立得拍摄区">
+        <div class="brand-line">
+          <span>Seoul Film Booth</span>
+          <span>4-cut / polaroid / film</span>
+        </div>
+
+        <div class="booth-grid">
+          <section class="camera-stage" aria-label="相机预览">
+            <div class="stage-top">
+              <div>
+                <p class="eyebrow">LIVE CAMERA</p>
+                <h1>韩式拍立得工作台</h1>
+              </div>
+              <div class="status-pill" id="cameraStatus">等待开启摄像头</div>
+            </div>
+
+            <div class="viewer-wrap" data-frame="cream">
+              <video id="cameraFeed" class="viewer-media is-camera is-visible" autoplay playsinline muted></video>
+              <canvas id="photoCanvas" class="viewer-media"></canvas>
+              <div class="countdown" id="countdown" aria-live="polite"></div>
+              <div class="flash" id="flash"></div>
+            </div>
+
+            <div class="primary-actions">
+              <button class="button button-main" id="startCamera" type="button">打开摄像头</button>
+              <button class="button button-shutter" id="takePhoto" type="button" disabled>拍照</button>
+              <button class="button" id="retakePhoto" type="button" disabled>重拍</button>
+              <button class="button" id="downloadPhoto" type="button" disabled>下载</button>
+            </div>
+            <button class="ghost-action" id="useDemo" type="button">没有摄像头？使用样张体验完整流程</button>
+          </section>
+
+          <aside class="control-panel" aria-label="照片设置">
+            <section class="panel-section">
+              <div class="section-title">
+                <p class="eyebrow">FRAME</p>
+                <h2>边框样式</h2>
+              </div>
+              <div class="option-grid" id="frameOptions"></div>
+            </section>
+
+            <section class="panel-section">
+              <div class="section-title">
+                <p class="eyebrow">FILTER</p>
+                <h2>胶片滤镜</h2>
+              </div>
+              <div class="filter-list" id="filterOptions"></div>
+            </section>
+
+            <section class="panel-section">
+              <label class="field-label" for="captionInput">相纸文字</label>
+              <input id="captionInput" class="text-input" type="text" maxlength="28" value="SEOUL MEMORY">
+              <div class="toggle-row">
+                <label>
+                  <input id="dateToggle" type="checkbox" checked>
+                  <span>显示日期</span>
+                </label>
+                <label>
+                  <input id="grainToggle" type="checkbox" checked>
+                  <span>胶片颗粒</span>
+                </label>
+              </div>
+            </section>
+
+            <section class="panel-section compact">
+              <div class="section-title">
+                <p class="eyebrow">STICKER</p>
+                <h2>随机贴纸</h2>
+              </div>
+              <div class="toggle-row">
+                <label>
+                  <input id="stickerToggle" type="checkbox" checked>
+                  <span>五角星 / 爱心 / 闪光</span>
+                </label>
+              </div>
+              <label class="field-label sticker-label" for="stickerAmount">贴纸数量</label>
+              <input id="stickerAmount" class="range-input" type="range" min="4" max="18" value="10">
+              <button class="button sticker-button" id="randomizeStickers" type="button">重新随机分布</button>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="studio page-view four-cut-page" id="fourCutPage" aria-label="菲林人生四格拍摄区">
+        <div class="brand-line sketch-brand">
+          <span>Film Life 4-Cut</span>
+          <span>choose frame / shoot 4 / download strip</span>
+        </div>
+
+        <div class="fourcut-grid">
+          <section class="fourcut-stage" aria-label="四格摄像头预览">
+            <div class="stage-top hand-stage-top">
+              <div>
+                <p class="eyebrow">DRAWN PHOTOBOOTH</p>
+                <h1>菲林人生四格</h1>
+              </div>
+              <div class="status-pill sketch-status" id="fourCutStatus">先选择边框</div>
+            </div>
+
+            <div class="fourcut-workbench">
+              <div class="fourcut-live-card">
+              <video id="fourCutVideo" class="fourcut-video is-camera is-visible" autoplay playsinline muted></video>
+                <canvas id="fourCutCanvas" class="fourcut-canvas"></canvas>
+                <div class="countdown four-countdown" id="fourCountdown" aria-live="polite"></div>
+                <div class="flash" id="fourFlash"></div>
+              </div>
+
+              <div class="strip-preview" aria-label="四格照片进度">
+                <div class="strip-window" id="fourProgress">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="primary-actions four-actions">
+              <button class="button button-main" id="fourStartCamera" type="button">打开摄像头</button>
+              <button class="button button-shutter" id="fourStartSession" type="button" disabled>开始四连拍</button>
+              <button class="button" id="fourRetake" type="button" disabled>重新拍摄</button>
+              <button class="button" id="fourDownload" type="button" disabled>下载四格</button>
+            </div>
+            <button class="ghost-action" id="fourUseDemo" type="button">没有摄像头？生成四张样片预览</button>
+          </section>
+
+          <aside class="control-panel sketch-panel" aria-label="四格照片设置">
+            <section class="panel-section">
+              <div class="section-title">
+                <p class="eyebrow">STEP 1</p>
+                <h2>选择手绘边框</h2>
+              </div>
+              <div class="four-frame-list" id="fourFrameOptions"></div>
+            </section>
+
+            <section class="panel-section">
+              <label class="field-label" for="fourCaptionInput">四格标题</label>
+              <input id="fourCaptionInput" class="text-input" type="text" maxlength="24" value="FILM LIFE">
+              <div class="toggle-row">
+                <label>
+                  <input id="fourDateToggle" type="checkbox" checked>
+                  <span>打印日期</span>
+                </label>
+                <label>
+                  <input id="fourDoodleToggle" type="checkbox" checked>
+                  <span>随机手绘符号</span>
+                </label>
+              </div>
+            </section>
+
+            <section class="panel-section compact">
+              <div class="section-title">
+                <p class="eyebrow">STEP 2</p>
+                <h2>开始拍摄</h2>
+              </div>
+              <p class="sketch-note">按下开始后会连续拍 4 张，最终输出一条竖版四格菲林相条。</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="./app.js?v=20260613-restore-flow"></script>
+  </body>
+</html>
