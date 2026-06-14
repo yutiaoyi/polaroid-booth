@@ -109,11 +109,41 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(html, /start 4 shots/);
   assert.match(script, /runSketchCountdown\(index\)/);
   assert.match(script, /captureSketchShot\(index\)/);
+  assert.match(script, /const SKETCH_COUNTDOWN_TICK_MS = 1000/);
+  assert.match(script, /const SKETCH_BETWEEN_SHOTS_MS = 1200/);
+  assert.match(script, /const SKETCH_PRE_SHOT_PAUSE_MS = 600/);
+  assert.match(script, /await delay\(SKETCH_BETWEEN_SHOTS_MS\)/);
+  assert.match(script, /await delay\(SKETCH_PRE_SHOT_PAUSE_MS\)/);
   assert.match(script, /shot \$\{index \+ 1\} \/ 4/);
   assert.match(script, /saved \$\{sketchFlowState\.shots\.length\} \/ 4/);
   assert.doesNotMatch(script, /if \(!sketchFlowState\.stream\) \{\s*useSketchDemo\(\);\s*return;\s*\}/);
   assert.match(script, /sketchFlowState\.shots\.length === 4/);
   assert.match(script, /sketchOutputCanvas\.toDataURL\("image\/png"\)/);
+});
+
+test("sketch flow exposes back buttons for every post-landing step", async () => {
+  const html = await readFile(new URL("index.html", root), "utf8");
+  const script = await readFile(new URL("app.js", root), "utf8");
+  const css = await readFile(new URL("styles.css", root), "utf8");
+
+  for (const id of [
+    "sketchBackFromSelect",
+    "sketchBackFromChoice",
+    "sketchBackFromCamera",
+    "sketchBackFromPrint"
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+
+  assert.match(html, /class="[^"]*sketch-back-button/);
+  assert.match(script, /function goBackSketchStep/);
+  assert.match(script, /function clearSketchPrintTimers/);
+  assert.match(script, /sketchBackButtons/);
+  assert.match(script, /data-sketch-back/);
+  assert.match(script, /stopMediaStream\(sketchFlowState\.stream\)/);
+  assert.match(script, /sketchFlowState\.shots = \[\]/);
+  assert.match(script, /sketchFlowState\.printTimers = \[\]/);
+  assert.match(css, /\.sketch-back-button/);
 });
 
 test("sketch setup only chooses layout ratio before camera filters", async () => {

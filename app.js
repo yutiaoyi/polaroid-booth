@@ -203,8 +203,13 @@ const sketchFlowState = {
   color: true,
   filterId: "color",
   stream: null,
-  shots: []
+  shots: [],
+  printTimers: []
 };
+
+const SKETCH_COUNTDOWN_TICK_MS = 1000;
+const SKETCH_PRE_SHOT_PAUSE_MS = 600;
+const SKETCH_BETWEEN_SHOTS_MS = 1200;
 
 const sketchFilters = [
   { id: "color", name: "Color", label: "Color film", css: "contrast(1.08) saturate(0.9) sepia(0.12)" },
@@ -234,6 +239,7 @@ const elements = {
   sketchFlow: $(".sketch-flow"),
   legacyApp: $(".legacy-app"),
   sketchSteps: document.querySelectorAll("[data-sketch-step]"),
+  sketchBackButtons: document.querySelectorAll("[data-sketch-back]"),
   sketchEnter: $("#sketchEnter"),
   sketchFrameSelect: $("#sketchFrameSelect"),
   sketchPrevFrame: $("#sketchPrevFrame"),
@@ -424,6 +430,43 @@ function showSketchStep(step) {
     syncSketchLiveAspectRatio();
   }
   window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function clearSketchPrintTimers() {
+  for (const timer of sketchFlowState.printTimers) {
+    window.clearTimeout(timer);
+  }
+  sketchFlowState.printTimers = [];
+}
+
+function goBackSketchStep(targetStep) {
+  clearSketchPrintTimers();
+  if (sketchFlowState.stream) {
+    stopMediaStream(sketchFlowState.stream);
+    sketchFlowState.stream = null;
+  }
+
+  sketchFlowState.shots = [];
+  if (elements.sketchVideo) {
+    elements.sketchVideo.srcObject = null;
+  }
+  if (elements.sketchStartShoot) {
+    elements.sketchStartShoot.disabled = false;
+    elements.sketchStartShoot.textContent = "start 4 shots";
+  }
+  if (elements.sketchShootProgress) {
+    elements.sketchShootProgress.textContent = "ready for 4 shots";
+  }
+  if (elements.sketchOutputCanvas) {
+    elements.sketchOutputCanvas.classList.remove("is-delivered");
+  }
+  if (elements.sketchPickup) {
+    elements.sketchPickup.disabled = true;
+  }
+
+  renderSketchSetupSummary();
+  syncSketchLiveAspectRatio();
+  showSketchStep(targetStep);
 }
 
 function getSketchFrame() {
@@ -1217,11 +1260,14 @@ async function startSketchShoot() {
   elements.sketchStartShoot.disabled = true;
   elements.sketchStartShoot.textContent = "shooting";
   for (let index = 0; index < 4; index += 1) {
+    await delay(SKETCH_PRE_SHOT_PAUSE_MS);
     await runSketchCountdown(index);
     const shot = captureSketchShot(index);
     sketchFlowState.shots = [...sketchFlowState.shots, shot];
     elements.sketchShootProgress.textContent = `saved ${sketchFlowState.shots.length} / 4`;
-    await delay(180);
+    if (index < 3) {
+      await delay(SKETCH_BETWEEN_SHOTS_MS);
+    }
   }
 
   if (sketchFlowState.shots.length === 4) {
@@ -1245,7 +1291,7 @@ async function runSketchCountdown(index) {
   elements.sketchShootProgress.textContent = `shot ${index + 1} / 4`;
   for (const value of [3, 2, 1]) {
     elements.sketchShootCountdown.textContent = value;
-    await delay(520);
+    await delay(SKETCH_COUNTDOWN_TICK_MS);
   }
   elements.sketchShootCountdown.textContent = "";
 }
@@ -1273,19 +1319,22 @@ function uploadSketchPhoto(event) {
 }
 
 function showSketchPrint() {
+  clearSketchPrintTimers();
   renderSketchOutputStrip();
   showSketchStep("print");
   elements.sketchPickup.disabled = true;
   elements.sketchOutputCanvas.classList.remove("is-delivered");
   elements.sketchPrintCountdown.textContent = "2";
-  window.setTimeout(() => {
+  const tickTimer = window.setTimeout(() => {
     elements.sketchPrintCountdown.textContent = "1";
   }, 700);
-  window.setTimeout(() => {
+  const deliverTimer = window.setTimeout(() => {
     elements.sketchPrintCountdown.textContent = "0";
     elements.sketchOutputCanvas.classList.add("is-delivered");
     elements.sketchPickup.disabled = false;
+    sketchFlowState.printTimers = [];
   }, 1400);
+  sketchFlowState.printTimers = [tickTimer, deliverTimer];
 }
 
 function getSketchOutputLayout() {
@@ -1405,6 +1454,9 @@ function bindEvents() {
   initNavigation();
 
   bindClick(elements.sketchEnter, "click", () => showSketchStep("select"));
+  for (const button of elements.sketchBackButtons) {
+    button.addEventListener("click", () => goBackSketchStep(button.dataset.sketchBack));
+  }
   bindClick(elements.sketchPrevFrame, "click", () => cycleSketchFrame(-1));
   bindClick(elements.sketchNextFrame, "click", () => cycleSketchFrame(1));
   elements.sketchSelectFrame.addEventListener("click", () => {

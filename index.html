@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Ma+Shan+Zheng&family=Patrick+Hand&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20260613-layout-fixes">
+    <link rel="stylesheet" href="./styles.css?v=20260614-flow-fixes">
   </head>
   <body>
     <nav class="top-mode-nav" id="topModeNav" aria-label="功能导航">
@@ -171,6 +171,7 @@
 
       <section class="sketch-step" id="sketchFrameSelect" data-sketch-step="select">
         <div class="machine-layout doodle-machine filter-select-layout">
+          <button class="sketch-back-button doodle-box" id="sketchBackFromSelect" type="button" data-sketch-back="landing" aria-label="返回上一步">← back</button>
           <div class="step-note step-note-frame">
             <span class="step-note-number">1</span>
             <span>Choose layout and photo ratio</span>
@@ -198,6 +199,7 @@
 
       <section class="sketch-step" id="sketchCameraChoice" data-sketch-step="choice">
         <div class="machine-layout doodle-machine">
+          <button class="sketch-back-button doodle-box" id="sketchBackFromChoice" type="button" data-sketch-back="select" aria-label="返回上一步">← back</button>
           <div class="choice-summary doodle-box" id="sketchChoiceSummary" aria-live="polite"></div>
           <div class="frame-machine camera-choice-machine doodle-box">
             <button class="sketch-button choice-button" id="sketchTakePhotoEntry" type="button">take photo ◉</button>
@@ -215,6 +217,7 @@
 
       <section class="sketch-step" id="sketchCamera" data-sketch-step="camera">
         <div class="machine-layout doodle-machine">
+          <button class="sketch-back-button doodle-box" id="sketchBackFromCamera" type="button" data-sketch-back="choice" aria-label="返回上一步">← back</button>
           <div class="eye-label">eye<br>level →</div>
           <div class="choice-summary live-summary doodle-box" id="sketchLiveSummary" aria-live="polite"></div>
           <div class="frame-machine live-machine doodle-box">
@@ -303,6 +306,7 @@
 
       <section class="sketch-step" id="sketchPrint" data-sketch-step="print">
         <div class="print-layout doodle-machine">
+          <button class="sketch-back-button print-back-button doodle-box" id="sketchBackFromPrint" type="button" data-sketch-back="camera" aria-label="返回上一步">← back</button>
           <div class="delivery-sign doodle-box" id="sketchPrintSign">PHOTOS<br>DELIVERED<br>HERE IN<br><span id="sketchPrintCountdown">2</span> SECONDS<br>↓</div>
           <div class="printer-body doodle-box">
             <div class="printer-window">
@@ -486,6 +490,6 @@
       </section>
     </main>
 
-    <script src="./app.js?v=20260613-layout-fixes"></script>
+    <script src="./app.js?v=20260614-flow-fixes"></script>
   </body>
 </html>

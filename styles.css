@@ -1252,6 +1252,7 @@ h2 {
 .side-console,
 .delivery-sign,
 .printer-body,
+.sketch-back-button,
 .sketch-button:not(.enter-button):not(.pickup-button) {
   border: none;
   background: transparent;
@@ -1281,7 +1282,8 @@ h2 {
 
 .doodle-machine .frame-machine > *,
 .doodle-machine .side-console > *,
-.doodle-machine .instruction-card > * {
+.doodle-machine .instruction-card > *,
+.doodle-machine .sketch-back-button > * {
   z-index: 1;
 }
 
@@ -1321,6 +1323,34 @@ h2 {
 
 .doodle-machine .pickup-button::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 440 52' preserveAspectRatio='none'%3E%3Cpath d='M10 14 C 80 6 360 8 430 16 C 436 26 434 38 426 42 C 360 48 80 46 14 40 C 6 34 6 22 10 14 Z' fill='rgba(246,227,184,0.85)' stroke='%23141414' stroke-width='4' filter='url(%23sketchRough)'/%3E%3C/svg%3E");
+}
+
+.doodle-machine .sketch-back-button::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 134 48' preserveAspectRatio='none'%3E%3Cpath d='M10 14 C 28 6 106 8 124 14 C 132 22 130 34 122 40 C 94 46 34 44 12 38 C 4 30 4 20 10 14 Z' fill='rgba(255,255,255,0.64)' stroke='%23141414' stroke-width='3.5' filter='url(%23sketchRough)'/%3E%3C/svg%3E");
+}
+
+.sketch-back-button {
+  position: absolute;
+  top: 86px;
+  left: 28px;
+  z-index: 6;
+  width: 134px;
+  height: 48px;
+  color: #172232;
+  cursor: pointer;
+  font-family: var(--hand-font);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  transform: rotate(-1.2deg);
+}
+
+.sketch-back-button:hover {
+  transform: translateX(-2px) rotate(-2deg);
+}
+
+.print-back-button {
+  top: 42px;
 }
 
 .blank-sign {
@@ -2305,6 +2335,18 @@ h2 {
     height: 760px;
     transform: scale(min(0.86, calc((100vw - 24px) / 390)));
     transform-origin: top center;
+  }
+
+  .sketch-back-button {
+    top: 72px;
+    left: 12px;
+    width: 112px;
+    height: 42px;
+    font-size: 18px;
+  }
+
+  .print-back-button {
+    top: 28px;
   }
 
   .filter-select-layout {
