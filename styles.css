@@ -2,6 +2,7 @@
   color-scheme: light;
   --hand-font: "Patrick Hand", "Comic Sans MS", "Marker Felt", cursive;
   --doodle-font: "Gloria Hallelujah", "Patrick Hand", "Comic Sans MS", cursive;
+  --zh-hand-font: "Ma Shan Zheng", "Kaiti SC", "STKaiti", "KaiTi", cursive;
   --ink: #191714;
   --muted: #71685c;
   --paper: #f7efe2;
@@ -54,14 +55,15 @@ input {
 
 .top-mode-button {
   min-height: 36px;
-  padding: 0 14px;
+  padding: 0 18px;
   border: 2px solid transparent;
   border-radius: 999px;
   cursor: pointer;
   color: #172232;
   background: transparent;
-  font-family: var(--hand-font);
-  font-size: 16px;
+  font-family: var(--zh-hand-font);
+  font-size: 22px;
+  line-height: 1;
   white-space: nowrap;
   pointer-events: auto;
 }
@@ -1263,7 +1265,7 @@ h2 {
 }
 
 .filter-select-layout {
-  height: 520px;
+  height: 560px;
 }
 
 .doodle-machine .doodle-box::before {
@@ -1756,10 +1758,10 @@ h2 {
 }
 
 .filter-select-layout .frame-machine {
-  left: 260px;
-  top: 280px;
-  width: 360px;
-  height: 370px;
+  left: 560px;
+  top: 176px;
+  width: 210px;
+  height: 310px;
 }
 
 .filter-select-layout .arrow-button {
@@ -1775,29 +1777,29 @@ h2 {
 }
 
 .filter-select-layout .selected-strip {
-  width: 54px;
-  height: 288px;
+  width: 48px;
+  height: 250px;
   pointer-events: none;
 }
 
 .filter-select-layout .selected-strip.grid {
-  width: 124px;
-  height: 164px;
+  width: 112px;
+  height: 148px;
 }
 
 .filter-select-layout .selected-strip.landscape {
-  width: 96px;
-  height: 288px;
+  width: 84px;
+  height: 250px;
 }
 
 .filter-select-layout .selected-strip.grid.landscape {
-  width: 164px;
-  height: 124px;
+  width: 148px;
+  height: 112px;
 }
 
 .layout-choice-panel {
   position: absolute;
-  left: 50%;
+  left: 292px;
   top: 190px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1827,10 +1829,10 @@ h2 {
 }
 
 .filter-select-layout .side-console {
-  top: 318px;
+  top: 397px;
   right: auto;
   bottom: auto;
-  left: 50%;
+  left: 484px;
   width: 52px;
   height: 52px;
   z-index: 4;
@@ -1862,7 +1864,7 @@ h2 {
 .choice-summary {
   position: absolute;
   left: 50%;
-  top: 112px;
+  top: 90px;
   display: grid;
   place-items: center;
   width: 460px;
@@ -1881,7 +1883,7 @@ h2 {
 }
 
 .choice-summary.live-summary {
-  top: 92px;
+  top: 66px;
   width: 390px;
   min-height: 46px;
   font-size: 18px;
@@ -1923,16 +1925,16 @@ h2 {
 }
 
 .step-note-frame {
-  left: 50%;
+  left: 292px;
   top: 120px;
   width: 300px;
   transform: translateX(-50%) rotate(-1.2deg);
 }
 
 .step-note-action {
-  left: 50%;
-  top: 388px;
-  width: 330px;
+  left: 282px;
+  top: 400px;
+  width: 300px;
   transform: translateX(-50%) rotate(-1.2deg);
 }
 
@@ -2043,14 +2045,14 @@ h2 {
 
 .live-machine {
   left: 230px;
-  top: 126px;
+  top: 112px;
   width: 400px;
   height: 470px;
   overflow: visible;
 }
 
 .live-machine.is-landscape {
-  left: 188px;
+  left: 205px;
   top: 146px;
   width: 486px;
   height: 382px;
@@ -2088,7 +2090,7 @@ h2 {
 }
 
 #sketchCamera .side-console {
-  top: 790px;
+  top: 774px;
   right: auto;
   bottom: auto;
   left: 372px;
@@ -2106,6 +2108,18 @@ h2 {
 #sketchCamera .shoot-start-button {
   top: 0;
   left: 0;
+}
+
+#sketchCamera .eye-label {
+  left: 112px;
+  top: 274px;
+  width: 88px;
+  z-index: 4;
+}
+
+#sketchCamera .machine-layout:has(.live-machine.is-landscape) .eye-label {
+  left: 88px;
+  top: 260px;
 }
 
 .sketch-video,
@@ -2294,7 +2308,7 @@ h2 {
   }
 
   .filter-select-layout {
-    height: 520px;
+    height: 720px;
   }
 
   .landing-booth {
@@ -2507,7 +2521,7 @@ h2 {
   }
 
   .filter-select-layout .side-console {
-    top: 314px;
+    top: 630px;
     right: auto;
     bottom: auto;
     left: 50%;
@@ -2550,7 +2564,7 @@ h2 {
 
   .step-note-action {
     left: 50%;
-    top: 382px;
+    top: 610px;
     width: 280px;
     transform: translateX(-50%) rotate(-1.2deg);
   }
@@ -2601,9 +2615,14 @@ h2 {
   }
 
   #sketchCamera .eye-label {
-    left: 18px;
-    top: 314px;
+    left: 8px;
+    top: 298px;
     font-size: 22px;
+  }
+
+  #sketchCamera .machine-layout:has(.live-machine.is-landscape) .eye-label {
+    left: 6px;
+    top: 284px;
   }
 
   .shoot-progress {

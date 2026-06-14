@@ -467,9 +467,7 @@ function getSketchCaptureSize() {
 }
 
 function renderSketchSetupSummary() {
-  const frame = getSketchFrame();
   const setupSummary = [
-    frame.name,
     `${getSketchLayoutLabel()} · ${getSketchRatioLabel()}`
   ].join(" / ");
   const liveSummary = [
