@@ -95,11 +95,22 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /const sketchFlowState =/);
   assert.match(script, /function showSketchStep/);
   assert.match(script, /function renderSketchFramePreview/);
+  assert.match(script, /function renderBackgroundStyleOptions/);
   assert.match(script, /async function startSketchCamera/);
   assert.match(script, /async function startSketchShoot/);
   assert.match(script, /function showSketchPrint/);
   assert.match(script, /function syncSketchLiveAspectRatio/);
   assert.match(script, /function getSketchCaptureSize/);
+  assert.match(script, /function renderSketchFrameStylePicker/);
+  assert.match(script, /function handleSketchFrameStyleClick/);
+  assert.match(script, /function drawDecoratedFrameBackground/);
+  assert.match(script, /function drawBorderStickers/);
+  assert.match(script, /function drawSketchPhotoFrame/);
+  assert.match(script, /function drawPhotoFrameStickers/);
+  assert.match(script, /function replaceSketchPortraitBackground/);
+  assert.match(script, /function initPortraitSegmentation/);
+  assert.match(script, /function composePortraitBackground/);
+  assert.match(script, /function applySketchFilmGrade/);
   assert.match(script, new RegExp('style\\.aspectRatio = getSketchRatioLabel\\(\\)\\.replace\\(":", " / "\\)'));
   assert.match(script, /captureSource\(elements\.sketchVideo, captureSize\.width, captureSize\.height\)/);
   assert.match(script, /sketchFlowState\.ratio === "landscape"\s*\?\s*\{ width: 1200, height: 900 \}/);
@@ -108,17 +119,96 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(html, /id="sketchShootProgress"/);
   assert.match(html, /start 4 shots/);
   assert.match(script, /runSketchCountdown\(index\)/);
-  assert.match(script, /captureSketchShot\(index\)/);
-  assert.match(script, /const SKETCH_COUNTDOWN_TICK_MS = 1000/);
-  assert.match(script, /const SKETCH_BETWEEN_SHOTS_MS = 1200/);
-  assert.match(script, /const SKETCH_PRE_SHOT_PAUSE_MS = 600/);
+  assert.match(script, /await captureSketchShot\(index\)/);
+  assert.match(script, /return replaceSketchPortraitBackground\(source, index\)/);
+  assert.match(script, /shot\.dataset\?\.sketchFilterApplied === "true" \? "none" : filter\.css/);
+  assert.match(script, /applySketchFilmGrade\(ctx, filter, \{ x, y, width: photoWidth, height: photoHeight \}\)/);
+  assert.match(script, /const SKETCH_COUNTDOWN_TICK_MS = 700/);
+  assert.match(script, /const SKETCH_BETWEEN_SHOTS_MS = 500/);
+  assert.match(script, /const SKETCH_PRE_SHOT_PAUSE_MS = 300/);
   assert.match(script, /await delay\(SKETCH_BETWEEN_SHOTS_MS\)/);
   assert.match(script, /await delay\(SKETCH_PRE_SHOT_PAUSE_MS\)/);
   assert.match(script, /shot \$\{index \+ 1\} \/ 4/);
   assert.match(script, /saved \$\{sketchFlowState\.shots\.length\} \/ 4/);
+  assert.match(script, /drawDecoratedFrameBackground\(ctx, frame, width, height, margin, captionHeight\)/);
+  assert.match(script, /drawSketchPhotoFrame\(ctx, frame, x, y, photoWidth, photoHeight, borderWidth, index\)/);
+  assert.match(script, /style === "stars"/);
   assert.doesNotMatch(script, /if \(!sketchFlowState\.stream\) \{\s*useSketchDemo\(\);\s*return;\s*\}/);
   assert.match(script, /sketchFlowState\.shots\.length === 4/);
   assert.match(script, /sketchOutputCanvas\.toDataURL\("image\/png"\)/);
+});
+
+test("sketch camera supports portrait background replacement", async () => {
+  const html = await readFile(new URL("index.html", root), "utf8");
+  const script = await readFile(new URL("app.js", root), "utf8");
+  const css = await readFile(new URL("styles.css", root), "utf8");
+
+  assert.match(html, /id="bgStylePanel"/);
+  assert.match(html, /id="bgStyleButtons"/);
+  assert.match(html, /Background/);
+  assert.match(script, /const backgroundStyles =/);
+  assert.match(script, /id: "blue-studio"/);
+  assert.match(script, /id: "sage-studio"/);
+  assert.match(script, /id: "white-studio"/);
+  assert.match(script, /id: "mono-stars"/);
+  assert.match(script, /id: "flash-glow"/);
+  assert.match(script, /const starPatterns = \[/);
+  assert.match(script, /const stars = starPatterns\[patternIndex % starPatterns\.length\]/);
+  assert.match(script, /for \(const \[xRatio, yRatio, sizeRatio, rotation, filled\] of stars\)/);
+  assert.match(script, /Math\.min\(width, height\) \* sizeRatio/);
+  assert.match(script, /\[0\.31, 0\.09, 0\.12, -0\.16, true\]/);
+  assert.match(script, /\[0\.44, 0\.72, 0\.12, 0\.12, true\]/);
+  assert.match(script, /drawBackgroundStars\(ctx, width, height, bgStyle\.colors\[1\], patternIndex\)/);
+  assert.match(script, /MEDIAPIPE_SELFIE_SEGMENTATION_SRC/);
+  assert.match(script, /window\.SelfieSegmentation/);
+  assert.match(script, /segmenter\.send\(\{ image: source \}\)/);
+  assert.match(script, /applyBackgroundToCanvas\(output, background, patternIndex\)/);
+  assert.match(script, /portraitCtx\.filter = getSketchFilter\(\)\.css/);
+  assert.match(script, /applySketchFilmGrade\(portraitCtx, getSketchFilter\(\), \{ x: 0, y: 0, width, height \}\)/);
+  assert.match(script, /output\.dataset\.sketchFilterApplied = "true"/);
+  assert.match(script, /globalCompositeOperation = "destination-in"/);
+  assert.match(script, /processSketchShotSources/);
+  assert.match(script, /data-bg-style/);
+  assert.match(css, /\.bg-style-panel/);
+  assert.match(css, /\.bg-style-button\.star-bg/);
+  assert.match(css, /\.bg-style-button\.flash-bg/);
+});
+
+test("sketch setup exposes multiple selectable frame styles", async () => {
+  const html = await readFile(new URL("index.html", root), "utf8");
+  const script = await readFile(new URL("app.js", root), "utf8");
+  const css = await readFile(new URL("styles.css", root), "utf8");
+
+  for (const frameId of [
+    "classic",
+    "white",
+    "berry",
+    "sky",
+    "notebook",
+    "star-pop",
+    "heart-stamp",
+    "checker",
+    "ribbon"
+  ]) {
+    assert.match(html, new RegExp(`data-sketch-frame-style="${frameId}"`));
+  }
+
+  assert.match(html, /class="[^"]*frame-style-panel/);
+  assert.match(html, /Star Pop/);
+  assert.match(script, /name: "Star Pop"/);
+  assert.match(script, /note: "纯色星星随机边框"/);
+  assert.match(script, /style: "stars"/);
+  assert.match(script, /drawPhotoCheckerCorners/);
+  assert.match(script, /drawPhotoRibbonFrame/);
+  assert.match(script, /drawPhotoNotebookFrame/);
+  assert.match(script, /drawPhotoTapeLabel/);
+  assert.match(script, /sketchFrameStyleButtons/);
+  assert.match(script, /dataset\.sketchFrameStyle/);
+  assert.match(script, /frame\.name/);
+  assert.match(css, /\.frame-style-panel/);
+  assert.match(css, /\.frame-style-button\.is-selected/);
+  assert.match(css, /\.selected-strip\.frame-style-star-pop::after/);
+  assert.match(css, /\.frame-style-star-pop/);
 });
 
 test("sketch flow exposes back buttons for every post-landing step", async () => {
@@ -162,6 +252,7 @@ test("sketch setup only chooses layout ratio before camera filters", async () =>
   assert.match(cameraSection, /data-sketch-filter="vivid"/);
   assert.match(cameraSection, /data-sketch-filter="pastel"/);
   assert.match(cameraSection, /data-sketch-filter="dreamy"/);
+  assert.match(cameraSection, /data-sketch-filter="bluefilm"/);
   assert.match(cameraSection, /data-sketch-filter="cinematic"/);
   assert.match(cameraSection, /data-sketch-filter="blur"/);
   assert.match(cameraSection, /data-sketch-filter="trix"/);
@@ -189,7 +280,9 @@ test("sketch setup only chooses layout ratio before camera filters", async () =>
   assert.match(script, /has-grain-filter/);
   assert.match(script, /function renderSketchModePicker/);
   assert.match(script, /handleSketchModeClick/);
-  assert.match(script, /ctx\.filter = getSketchFilter\(\)\.css/);
+  assert.match(script, /filmGrade: "blueFlash"/);
+  assert.match(script, /Blue flash film look/);
+  assert.match(script, /blueWash\.addColorStop\(0, "#294b73"\)/);
   assert.match(css, /\.filter-mode-panel/);
   assert.match(css, /\.live-filter-panel/);
   assert.match(css, /grid-auto-flow: column/);

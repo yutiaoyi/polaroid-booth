@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&family=Ma+Shan+Zheng&family=Patrick+Hand&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20260614-flow-fixes">
+    <link rel="stylesheet" href="./styles.css?v=20260615-bg-replacement">
   </head>
   <body>
     <nav class="top-mode-nav" id="topModeNav" aria-label="功能导航">
@@ -185,6 +185,44 @@
             <button class="layout-choice-button" type="button" data-sketch-layout="grid" data-sketch-ratio="portrait" aria-pressed="false">2 x 2 · 3:4</button>
             <button class="layout-choice-button" type="button" data-sketch-layout="grid" data-sketch-ratio="landscape" aria-pressed="false">2 x 2 · 4:3</button>
           </div>
+          <div class="frame-style-panel doodle-box" aria-label="选择边框风格">
+            <button class="frame-style-button is-selected" type="button" data-sketch-frame-style="classic" aria-pressed="true">
+              <span class="frame-style-swatch frame-style-classic"></span>
+              <span>Classic</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="white" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-white"></span>
+              <span>White</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="berry" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-berry"></span>
+              <span>Berry</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="sky" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-sky"></span>
+              <span>Sky</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="notebook" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-notebook"></span>
+              <span>Notebook</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="star-pop" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-star-pop"></span>
+              <span>Star Pop</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="heart-stamp" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-heart-stamp"></span>
+              <span>Heart</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="checker" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-checker"></span>
+              <span>Checker</span>
+            </button>
+            <button class="frame-style-button" type="button" data-sketch-frame-style="ribbon" aria-pressed="false">
+              <span class="frame-style-swatch frame-style-ribbon"></span>
+              <span>Ribbon</span>
+            </button>
+          </div>
           <div class="step-note step-note-action">
             <span class="step-note-number">2</span>
             <span>Press the button to confirm your setup</span>
@@ -264,6 +302,10 @@
                 <span class="filter-mode-label">Dreamy</span>
                 <span>Bright soft glow</span>
               </button>
+              <button class="filter-mode-card" type="button" data-sketch-filter="bluefilm" aria-pressed="false">
+                <span class="filter-mode-label">Blue Film</span>
+                <span>Blue flash film look</span>
+              </button>
               <button class="filter-mode-card" type="button" data-sketch-filter="cinematic" aria-pressed="false">
                 <span class="filter-mode-label">Cine</span>
                 <span>Low-sat film mood</span>
@@ -293,6 +335,10 @@
                 <span>Muted old film</span>
               </button>
             </div>
+          </div>
+          <div class="bg-style-panel doodle-box" id="bgStylePanel" aria-label="选择背景替换">
+            <div class="bg-style-note">Background</div>
+            <div class="bg-style-buttons" id="bgStyleButtons"></div>
           </div>
           <div class="shoot-progress" id="sketchShootProgress" aria-live="polite">ready for 4 shots</div>
           <div class="side-console doodle-box">
@@ -490,6 +536,6 @@
       </section>
     </main>
 
-    <script src="./app.js?v=20260614-flow-fixes"></script>
+    <script src="./app.js?v=20260615-bg-replacement"></script>
   </body>
 </html>

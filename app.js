@@ -137,14 +137,153 @@ const stickerTypes = [
   { type: "dot", colors: ["#e35b68", "#8ed7d3", "#ffffff"] }
 ];
 
+const backgroundStyles = [
+  { id: "none", name: "Original", label: "Keep camera background", type: "none", className: "original-bg" },
+  { id: "blue-studio", name: "Soft Blue", label: "Blue studio paper", type: "gradient", className: "blue-gradient", colors: ["#294b73", "#9bd4e8", "#f4fbff"] },
+  { id: "sage-studio", name: "Sage Green", label: "Muted green wall", type: "gradient", className: "green-gradient", colors: ["#58735c", "#9cb395", "#e8eddc"] },
+  { id: "white-studio", name: "Studio White", label: "Clean white flash", type: "solid", className: "white-bg", color: "#fbfbf7" },
+  { id: "mono-stars", name: "Mono Stars", label: "White wall with black stars", type: "stars", className: "star-bg", colors: ["#f8faf6", "#111111"] },
+  { id: "flash-glow", name: "Flash Glow", label: "High exposure white", type: "exposure", className: "flash-bg", colors: ["#ffffff", "#f4f1e8"] }
+];
+
+const MEDIAPIPE_SELFIE_SEGMENTATION_SRC = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js";
+const MEDIAPIPE_SELFIE_SEGMENTATION_ASSETS = "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation";
+let sketchSegmentationPromise = null;
+
+function applyBackgroundToCanvas(canvas, bgStyle, patternIndex = 0) {
+  const ctx = canvas.getContext("2d");
+  const { width, height } = canvas;
+
+  if (!bgStyle || bgStyle.type === "none") {
+    return;
+  }
+
+  if (bgStyle.type === "solid" && bgStyle.color) {
+    ctx.fillStyle = bgStyle.color;
+    ctx.fillRect(0, 0, width, height);
+    return;
+  }
+
+  if (bgStyle.type === "gradient" && bgStyle.colors) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, height);
+    gradient.addColorStop(0, bgStyle.colors[0]);
+    gradient.addColorStop(0.55, bgStyle.colors[1]);
+    gradient.addColorStop(1, bgStyle.colors[2] || bgStyle.colors[1]);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    return;
+  }
+
+  if (bgStyle.type === "stars" && bgStyle.colors) {
+    ctx.fillStyle = bgStyle.colors[0];
+    ctx.fillRect(0, 0, width, height);
+    drawBackgroundStars(ctx, width, height, bgStyle.colors[1], patternIndex);
+    return;
+  }
+
+  if (bgStyle.type === "exposure" && bgStyle.colors) {
+    const gradient = ctx.createRadialGradient(width * 0.5, height * 0.42, 0, width * 0.5, height * 0.42, Math.max(width, height) * 0.78);
+    gradient.addColorStop(0, bgStyle.colors[0]);
+    gradient.addColorStop(1, bgStyle.colors[1]);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+    ctx.fillRect(0, 0, width, height);
+  }
+}
+
+function drawBackgroundStars(ctx, width, height, color, patternIndex = 0) {
+  const starPatterns = [
+    [
+      [0.06, 0.08, 0.1, -0.12, true], [0.18, 0.06, 0.06, 0.18, true], [0.31, 0.09, 0.12, -0.16, true], [0.46, 0.06, 0.055, 0.12, false], [0.62, 0.1, 0.105, -0.14, true], [0.78, 0.07, 0.065, 0.18, true], [0.93, 0.1, 0.09, -0.1, true],
+      [0.1, 0.24, 0.07, 0.16, false], [0.24, 0.22, 0.055, -0.18, true], [0.39, 0.26, 0.1, 0.14, true], [0.56, 0.23, 0.055, -0.12, true], [0.72, 0.26, 0.085, 0.2, false], [0.88, 0.22, 0.06, -0.2, true],
+      [0.05, 0.42, 0.08, -0.14, true], [0.18, 0.39, 0.055, 0.16, true], [0.31, 0.45, 0.065, -0.2, false], [0.5, 0.41, 0.12, 0.1, true], [0.67, 0.44, 0.06, -0.16, true], [0.82, 0.4, 0.095, 0.18, true], [0.96, 0.45, 0.055, -0.1, false],
+      [0.1, 0.62, 0.065, 0.2, true], [0.24, 0.67, 0.1, -0.18, true], [0.39, 0.63, 0.055, 0.12, true], [0.55, 0.69, 0.075, -0.14, false], [0.73, 0.64, 0.11, 0.16, true], [0.9, 0.68, 0.06, -0.18, true],
+      [0.06, 0.86, 0.055, -0.16, false], [0.2, 0.82, 0.105, 0.18, true], [0.36, 0.88, 0.065, -0.12, true], [0.54, 0.84, 0.055, 0.2, false], [0.7, 0.88, 0.095, -0.18, true], [0.88, 0.84, 0.075, 0.14, true]
+    ],
+    [
+      [0.04, 0.12, 0.075, 0.16, true], [0.17, 0.09, 0.115, -0.18, true], [0.33, 0.06, 0.06, 0.12, false], [0.49, 0.11, 0.095, -0.14, true], [0.65, 0.07, 0.055, 0.2, true], [0.8, 0.11, 0.12, -0.16, true], [0.96, 0.08, 0.06, 0.14, false],
+      [0.1, 0.28, 0.06, -0.2, true], [0.25, 0.27, 0.085, 0.18, false], [0.4, 0.31, 0.055, -0.12, true], [0.55, 0.27, 0.115, 0.14, true], [0.73, 0.31, 0.065, -0.16, true], [0.89, 0.28, 0.1, 0.18, true],
+      [0.04, 0.49, 0.115, -0.14, true], [0.2, 0.48, 0.055, 0.2, false], [0.36, 0.53, 0.095, -0.18, true], [0.52, 0.49, 0.06, 0.16, true], [0.68, 0.54, 0.08, -0.12, false], [0.85, 0.5, 0.11, 0.14, true],
+      [0.12, 0.7, 0.08, 0.18, true], [0.28, 0.66, 0.055, -0.16, true], [0.44, 0.72, 0.12, 0.12, true], [0.6, 0.67, 0.055, -0.2, false], [0.76, 0.71, 0.09, 0.16, true], [0.93, 0.68, 0.06, -0.14, true],
+      [0.05, 0.9, 0.06, 0.14, false], [0.21, 0.86, 0.105, -0.18, true], [0.39, 0.91, 0.065, 0.2, true], [0.57, 0.86, 0.095, -0.12, true], [0.75, 0.91, 0.06, 0.16, false], [0.91, 0.86, 0.105, -0.2, true]
+    ],
+    [
+      [0.08, 0.07, 0.115, -0.16, true], [0.23, 0.12, 0.055, 0.18, true], [0.39, 0.08, 0.08, -0.12, false], [0.55, 0.13, 0.12, 0.16, true], [0.72, 0.08, 0.06, -0.2, true], [0.88, 0.13, 0.095, 0.14, true],
+      [0.04, 0.27, 0.06, 0.2, false], [0.18, 0.3, 0.095, -0.14, true], [0.34, 0.25, 0.06, 0.16, true], [0.5, 0.3, 0.105, -0.18, true], [0.67, 0.26, 0.055, 0.12, false], [0.83, 0.3, 0.115, -0.16, true], [0.97, 0.26, 0.055, 0.18, true],
+      [0.1, 0.46, 0.09, -0.12, true], [0.26, 0.5, 0.055, 0.2, true], [0.42, 0.45, 0.12, -0.16, true], [0.58, 0.51, 0.065, 0.14, false], [0.75, 0.47, 0.085, -0.18, true], [0.91, 0.52, 0.06, 0.16, false],
+      [0.05, 0.66, 0.055, -0.18, true], [0.2, 0.7, 0.11, 0.14, true], [0.37, 0.65, 0.065, -0.2, false], [0.53, 0.71, 0.09, 0.18, true], [0.7, 0.66, 0.055, -0.12, true], [0.86, 0.71, 0.12, 0.16, true],
+      [0.1, 0.9, 0.075, 0.12, false], [0.27, 0.84, 0.105, -0.18, true], [0.45, 0.9, 0.055, 0.2, true], [0.62, 0.84, 0.12, -0.14, true], [0.79, 0.9, 0.06, 0.16, false], [0.94, 0.84, 0.095, -0.2, true]
+    ]
+  ];
+  const stars = starPatterns[patternIndex % starPatterns.length];
+
+  for (const [xRatio, yRatio, sizeRatio, rotation, filled] of stars) {
+    const size = Math.min(width, height) * sizeRatio;
+    ctx.save();
+    ctx.translate(width * xRatio, height * yRatio);
+    ctx.rotate(rotation);
+    ctx.lineWidth = Math.max(3, size * 0.085);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = filled ? color : "transparent";
+    drawStar(ctx, size);
+    ctx.restore();
+  }
+}
+
+function loadScriptOnce(src) {
+  const existing = document.querySelector(`script[src="${src}"]`);
+  if (existing) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.crossOrigin = "anonymous";
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+async function initPortraitSegmentation() {
+  if (sketchSegmentationPromise) {
+    return sketchSegmentationPromise;
+  }
+
+  sketchSegmentationPromise = loadScriptOnce(MEDIAPIPE_SELFIE_SEGMENTATION_SRC)
+    .then(() => {
+      if (!window.SelfieSegmentation) {
+        throw new Error("SelfieSegmentation global is missing");
+      }
+      const segmenter = new window.SelfieSegmentation({
+        locateFile: (file) => `${MEDIAPIPE_SELFIE_SEGMENTATION_ASSETS}/${file}`
+      });
+      segmenter.setOptions({
+        modelSelection: 1,
+        selfieMode: false
+      });
+      return segmenter;
+    })
+    .catch((error) => {
+      console.warn("Portrait segmentation unavailable", error);
+      sketchSegmentationPromise = null;
+      return null;
+    });
+
+  return sketchSegmentationPromise;
+}
+
 const fourCutFrames = [
   {
-    id: "black",
-    name: "Black Ink",
-    note: "全黑边框",
+    id: "classic",
+    name: "Classic Ink",
+    note: "手绘黑线",
     paper: "#f8f8f5",
     ink: "#111111",
-    accent: "#111111"
+    accent: "#111111",
+    style: "solid"
   },
   {
     id: "white",
@@ -152,7 +291,8 @@ const fourCutFrames = [
     note: "全白边框",
     paper: "#ffffff",
     ink: "#111111",
-    accent: "#ffffff"
+    accent: "#d7d2c8",
+    style: "solid"
   },
   {
     id: "berry",
@@ -160,7 +300,8 @@ const fourCutFrames = [
     note: "粉红菲林边框",
     paper: "#fff3ef",
     ink: "#2c2924",
-    accent: "#d35467"
+    accent: "#d35467",
+    style: "solid"
   },
   {
     id: "sky",
@@ -168,7 +309,8 @@ const fourCutFrames = [
     note: "蓝色菲林边框",
     paper: "#e8f6fb",
     ink: "#263238",
-    accent: "#367f9a"
+    accent: "#367f9a",
+    style: "solid"
   },
   {
     id: "notebook",
@@ -176,7 +318,44 @@ const fourCutFrames = [
     note: "横线本相条",
     paper: "#fffaf0",
     ink: "#2c2924",
-    accent: "#5b8fb5"
+    accent: "#5b8fb5",
+    style: "notebook"
+  },
+  {
+    id: "star-pop",
+    name: "Star Pop",
+    note: "纯色星星随机边框",
+    paper: "#fff8d8",
+    ink: "#242018",
+    accent: "#f0b429",
+    style: "stars"
+  },
+  {
+    id: "heart-stamp",
+    name: "Heart Stamp",
+    note: "红心印章边框",
+    paper: "#fff0f3",
+    ink: "#332126",
+    accent: "#e04f63",
+    style: "hearts"
+  },
+  {
+    id: "checker",
+    name: "Checker Tape",
+    note: "复古棋盘胶带",
+    paper: "#fffaf0",
+    ink: "#222222",
+    accent: "#111111",
+    style: "checker"
+  },
+  {
+    id: "ribbon",
+    name: "Ribbon Blue",
+    note: "丝带边框",
+    paper: "#eef8f3",
+    ink: "#20302d",
+    accent: "#4e9d88",
+    style: "ribbon"
   }
 ];
 
@@ -202,14 +381,15 @@ const sketchFlowState = {
   ratio: "portrait",
   color: true,
   filterId: "color",
+  backgroundStyleId: "none",
   stream: null,
   shots: [],
   printTimers: []
 };
 
-const SKETCH_COUNTDOWN_TICK_MS = 1000;
-const SKETCH_PRE_SHOT_PAUSE_MS = 600;
-const SKETCH_BETWEEN_SHOTS_MS = 1200;
+const SKETCH_COUNTDOWN_TICK_MS = 700;
+const SKETCH_PRE_SHOT_PAUSE_MS = 300;
+const SKETCH_BETWEEN_SHOTS_MS = 500;
 
 const sketchFilters = [
   { id: "color", name: "Color", label: "Color film", css: "contrast(1.08) saturate(0.9) sepia(0.12)" },
@@ -221,6 +401,7 @@ const sketchFilters = [
   { id: "vivid", name: "Vivid", label: "Punchy color", css: "saturate(1.48) contrast(1.14) brightness(1.02)" },
   { id: "pastel", name: "Pastel", label: "Soft light color", css: "contrast(0.84) saturate(0.72) brightness(1.13)" },
   { id: "dreamy", name: "Dreamy", label: "Bright soft glow", css: "contrast(0.9) saturate(1.12) brightness(1.13) blur(0.4px)" },
+  { id: "bluefilm", name: "Blue Film", label: "Blue flash film look", css: "contrast(1.16) saturate(1.16) brightness(1.05)", grain: true, filmGrade: "blueFlash" },
   { id: "cinematic", name: "Cinematic", label: "Low-sat film mood", css: "contrast(1.2) saturate(0.78) brightness(0.98)" },
   { id: "blur", name: "Blur", label: "Soft focus", css: "blur(2px) contrast(1.04) saturate(0.94)" },
   { id: "trix", name: "Tri-X", label: "Classic grainy mono", css: "grayscale(1) contrast(1.32) brightness(1.02)", grain: true },
@@ -248,6 +429,7 @@ const elements = {
   sketchModeSample: $("#sketchModeSample"),
   sketchModeCards: document.querySelectorAll("[data-sketch-filter]"),
   sketchLayoutButtons: document.querySelectorAll("[data-sketch-layout]"),
+  sketchFrameStyleButtons: document.querySelectorAll("[data-sketch-frame-style]"),
   sketchChoiceSummary: $("#sketchChoiceSummary"),
   sketchLiveSummary: $("#sketchLiveSummary"),
   sketchSelectFrame: $("#sketchSelectFrame"),
@@ -260,6 +442,7 @@ const elements = {
   sketchStartShoot: $("#sketchStartShoot"),
   sketchShootCountdown: $("#sketchShootCountdown"),
   sketchShootProgress: $("#sketchShootProgress"),
+  bgStyleButtons: $("#bgStyleButtons"),
   sketchOutputCanvas: $("#sketchOutputCanvas"),
   sketchPrintCountdown: $("#sketchPrintCountdown"),
   sketchPickup: $("#sketchPickup"),
@@ -338,6 +521,22 @@ function renderFourFrameOptions() {
         <span class="option-name">${frame.name}</span>
         <span class="option-note">${frame.note}</span>
       </span>
+    </button>
+  `).join("");
+}
+
+function getSketchBackgroundStyle() {
+  return backgroundStyles.find((style) => style.id === sketchFlowState.backgroundStyleId) || backgroundStyles[0];
+}
+
+function renderBackgroundStyleOptions() {
+  if (!elements.bgStyleButtons) {
+    return;
+  }
+
+  elements.bgStyleButtons.innerHTML = backgroundStyles.map((style) => `
+    <button class="bg-style-button ${style.className} ${style.id === sketchFlowState.backgroundStyleId ? "is-selected" : ""}" type="button" data-bg-style="${style.id}" aria-pressed="${style.id === sketchFlowState.backgroundStyleId}">
+      <span>${style.name}</span>
     </button>
   `).join("");
 }
@@ -510,11 +709,15 @@ function getSketchCaptureSize() {
 }
 
 function renderSketchSetupSummary() {
+  const frame = getSketchFrame();
+  const background = getSketchBackgroundStyle();
   const setupSummary = [
+    frame.name,
     `${getSketchLayoutLabel()} · ${getSketchRatioLabel()}`
   ].join(" / ");
   const liveSummary = [
     getSketchFilter().name,
+    background.id === "none" ? "Original BG" : background.name,
     setupSummary
   ].join(" / ");
 
@@ -532,10 +735,21 @@ function renderSketchFramePreview() {
     return;
   }
   elements.sketchFramePreview.className = "selected-strip wobble-strip color";
+  elements.sketchFramePreview.classList.add(`frame-style-${frame.id}`);
   elements.sketchFramePreview.classList.toggle("grid", sketchFlowState.layout === "grid");
   elements.sketchFramePreview.classList.toggle("landscape", sketchFlowState.ratio === "landscape");
   elements.sketchFramePreview.style.color = frame.accent;
   elements.sketchFramePreview.style.backgroundColor = frame.paper;
+}
+
+function renderSketchFrameStylePicker() {
+  for (const button of elements.sketchFrameStyleButtons) {
+    const isSelected = button.dataset.sketchFrameStyle === getSketchFrame().id;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  }
+  renderSketchFramePreview();
+  renderSketchSetupSummary();
 }
 
 function renderSketchLayoutPicker() {
@@ -598,6 +812,32 @@ function handleSketchLayoutClick(event) {
   sketchFlowState.ratio = button.dataset.sketchRatio === "landscape" ? "landscape" : "portrait";
   renderSketchLayoutPicker();
   syncSketchLiveAspectRatio();
+}
+
+function handleSketchFrameStyleClick(event) {
+  const button = event.target.closest("[data-sketch-frame-style]");
+  if (!button) {
+    return;
+  }
+
+  const nextIndex = fourCutFrames.findIndex((frame) => frame.id === button.dataset.sketchFrameStyle);
+  if (nextIndex < 0) {
+    return;
+  }
+
+  sketchFlowState.frameIndex = nextIndex;
+  renderSketchFrameStylePicker();
+}
+
+function handleBackgroundStyleClick(event) {
+  const button = event.target.closest("[data-bg-style]");
+  if (!button) {
+    return;
+  }
+
+  sketchFlowState.backgroundStyleId = button.dataset.bgStyle;
+  renderBackgroundStyleOptions();
+  renderSketchSetupSummary();
 }
 
 function cycleSketchFrame(direction) {
@@ -785,6 +1025,53 @@ function applyFilmGrade(ctx, filter, photoBox) {
   ctx.restore();
 }
 
+function applySketchFilmGrade(ctx, filter, photoBox) {
+  if (filter.filmGrade !== "blueFlash") {
+    return;
+  }
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+  ctx.clip();
+
+  ctx.globalCompositeOperation = "screen";
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = "#fff6df";
+  ctx.fillRect(photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+
+  ctx.globalCompositeOperation = "soft-light";
+  ctx.globalAlpha = 0.28;
+  const blueWash = ctx.createLinearGradient(photoBox.x, photoBox.y, photoBox.x, photoBox.y + photoBox.height);
+  blueWash.addColorStop(0, "#294b73");
+  blueWash.addColorStop(0.55, "#8fcde0");
+  blueWash.addColorStop(1, "#fff2df");
+  ctx.fillStyle = blueWash;
+  ctx.fillRect(photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+
+  ctx.globalCompositeOperation = "overlay";
+  ctx.globalAlpha = 0.1;
+  ctx.fillStyle = "#e68b54";
+  ctx.fillRect(photoBox.x, photoBox.y + photoBox.height * 0.38, photoBox.width, photoBox.height * 0.62);
+
+  const centerX = photoBox.x + photoBox.width / 2;
+  const centerY = photoBox.y + photoBox.height * 0.42;
+  const radius = Math.max(photoBox.width, photoBox.height) * 0.78;
+  const vignette = ctx.createRadialGradient(centerX, centerY, radius * 0.28, centerX, centerY, radius);
+  vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+  vignette.addColorStop(1, "rgba(14, 32, 58, 0.28)");
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = vignette;
+  ctx.fillRect(photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+
+  ctx.save();
+  ctx.translate(photoBox.x, photoBox.y);
+  drawGrain(ctx, photoBox.width, photoBox.height);
+  ctx.restore();
+  ctx.restore();
+}
+
 function generateStickerLayout(photoBox) {
   const count = Number(elements.stickerAmount.value);
   const padding = 72;
@@ -824,7 +1111,7 @@ function drawSticker(ctx, sticker) {
   ctx.rotate(sticker.rotation);
   ctx.globalAlpha = sticker.alpha;
   ctx.lineWidth = Math.max(3, sticker.size * 0.08);
-  ctx.strokeStyle = "rgba(35, 31, 28, 0.18)";
+  ctx.strokeStyle = sticker.strokeAlpha === 0 ? "transparent" : `rgba(35, 31, 28, ${sticker.strokeAlpha ?? 0.18})`;
   ctx.fillStyle = sticker.color;
 
   if (sticker.type === "heart") {
@@ -1262,7 +1549,7 @@ async function startSketchShoot() {
   for (let index = 0; index < 4; index += 1) {
     await delay(SKETCH_PRE_SHOT_PAUSE_MS);
     await runSketchCountdown(index);
-    const shot = captureSketchShot(index);
+    const shot = await captureSketchShot(index);
     sketchFlowState.shots = [...sketchFlowState.shots, shot];
     elements.sketchShootProgress.textContent = `saved ${sketchFlowState.shots.length} / 4`;
     if (index < 3) {
@@ -1278,13 +1565,16 @@ async function startSketchShoot() {
   elements.sketchStartShoot.textContent = "start 4 shots";
 }
 
-function captureSketchShot(index) {
+async function captureSketchShot(index) {
+  let source;
   if (sketchFlowState.stream) {
     const captureSize = getSketchCaptureSize();
-    return captureSource(elements.sketchVideo, captureSize.width, captureSize.height);
+    source = captureSource(elements.sketchVideo, captureSize.width, captureSize.height);
+  } else {
+    source = createFourCutDemoShot(index);
   }
 
-  return createFourCutDemoShot(index);
+  return replaceSketchPortraitBackground(source, index);
 }
 
 async function runSketchCountdown(index) {
@@ -1296,8 +1586,12 @@ async function runSketchCountdown(index) {
   elements.sketchShootCountdown.textContent = "";
 }
 
-function useSketchDemo() {
-  sketchFlowState.shots = [0, 1, 2, 3].map((index) => createFourCutDemoShot(index));
+async function useSketchDemo() {
+  elements.sketchShootProgress.textContent = "processing background";
+  sketchFlowState.shots = await processSketchShotSources(
+    [0, 1, 2, 3].map((index) => createFourCutDemoShot(index))
+  );
+  elements.sketchShootProgress.textContent = "printing";
   showSketchPrint();
 }
 
@@ -1308,14 +1602,82 @@ function uploadSketchPhoto(event) {
   }
 
   const image = new Image();
-  image.onload = () => {
+  image.onload = async () => {
     const captureSize = getSketchCaptureSize();
-    sketchFlowState.shots = [0, 1, 2, 3].map(() => captureSource(image, captureSize.width, captureSize.height));
+    elements.sketchShootProgress.textContent = "processing background";
+    const source = captureSource(image, captureSize.width, captureSize.height);
+    sketchFlowState.shots = await processSketchShotSources([source, source, source, source]);
+    elements.sketchShootProgress.textContent = "printing";
     showSketchPrint();
     URL.revokeObjectURL(image.src);
     event.target.value = "";
   };
   image.src = URL.createObjectURL(file);
+}
+
+async function processSketchShotSources(sources) {
+  const shots = [];
+  for (const [index, source] of sources.entries()) {
+    shots.push(await replaceSketchPortraitBackground(source, index));
+  }
+  return shots;
+}
+
+async function replaceSketchPortraitBackground(source, index = 0) {
+  const background = getSketchBackgroundStyle();
+  if (background.type === "none") {
+    return source;
+  }
+
+  elements.sketchShootProgress.textContent = "cutting portrait";
+  const segmenter = await initPortraitSegmentation();
+  if (!segmenter) {
+    elements.sketchShootProgress.textContent = "background tool unavailable";
+    return source;
+  }
+
+  try {
+    const results = await segmentPortrait(segmenter, source);
+    return composePortraitBackground(source, results.segmentationMask, background, index);
+  } catch (error) {
+    console.warn("Portrait background replacement failed", error);
+    elements.sketchShootProgress.textContent = "using original background";
+    return source;
+  }
+}
+
+function segmentPortrait(segmenter, source) {
+  return new Promise((resolve, reject) => {
+    segmenter.onResults(resolve);
+    Promise.resolve(segmenter.send({ image: source })).catch(reject);
+  });
+}
+
+function composePortraitBackground(source, mask, background, patternIndex = 0) {
+  const width = source.width || source.videoWidth || source.naturalWidth;
+  const height = source.height || source.videoHeight || source.naturalHeight;
+  const output = document.createElement("canvas");
+  const outputCtx = output.getContext("2d");
+  output.width = width;
+  output.height = height;
+
+  applyBackgroundToCanvas(output, background, patternIndex);
+
+  const portrait = document.createElement("canvas");
+  const portraitCtx = portrait.getContext("2d");
+  portrait.width = width;
+  portrait.height = height;
+  portraitCtx.filter = getSketchFilter().css;
+  portraitCtx.drawImage(source, 0, 0, width, height);
+  portraitCtx.filter = "none";
+  applySketchFilmGrade(portraitCtx, getSketchFilter(), { x: 0, y: 0, width, height });
+  portraitCtx.globalCompositeOperation = "destination-in";
+  portraitCtx.filter = "blur(1px)";
+  portraitCtx.drawImage(mask, 0, 0, width, height);
+
+  outputCtx.drawImage(portrait, 0, 0);
+  output.dataset.sketchFilterApplied = "true";
+  return output;
 }
 
 function showSketchPrint() {
@@ -1367,6 +1729,7 @@ function renderSketchOutputStrip() {
   sketchOutputCanvas.height = height;
   ctx.fillStyle = frame.paper;
   ctx.fillRect(0, 0, width, height);
+  drawDecoratedFrameBackground(ctx, frame, width, height, margin, captionHeight);
   ctx.strokeStyle = frame.accent;
   ctx.lineWidth = borderWidth;
   ctx.strokeRect(borderWidth / 2, borderWidth / 2, width - borderWidth, height - borderWidth);
@@ -1377,12 +1740,14 @@ function renderSketchOutputStrip() {
     const x = margin + column * (photoWidth + gap);
     const y = margin + captionHeight + row * (photoHeight + gap);
     ctx.save();
-    ctx.filter = getSketchFilter().css;
+    const filter = getSketchFilter();
+    ctx.filter = shot.dataset?.sketchFilterApplied === "true" ? "none" : filter.css;
     drawCoverImage(ctx, shot, x, y, photoWidth, photoHeight);
     ctx.restore();
-    ctx.strokeStyle = frame.accent;
-    ctx.lineWidth = borderWidth;
-    ctx.strokeRect(x + borderWidth / 2, y + borderWidth / 2, photoWidth - borderWidth, photoHeight - borderWidth);
+    if (shot.dataset?.sketchFilterApplied !== "true") {
+      applySketchFilmGrade(ctx, filter, { x, y, width: photoWidth, height: photoHeight });
+    }
+    drawSketchPhotoFrame(ctx, frame, x, y, photoWidth, photoHeight, borderWidth, index);
   });
 
   ctx.fillStyle = frame.ink;
@@ -1392,6 +1757,194 @@ function renderSketchOutputStrip() {
   ctx.font = "700 18px Comic Sans MS, cursive";
   ctx.fillText(`${Math.round(photoWidth)} x ${Math.round(photoHeight)} ${getSketchRatioLabel()}`, width / 2, height - 28);
   drawGrain(ctx, width, height);
+}
+
+function drawSketchPhotoFrame(ctx, frame, x, y, width, height, borderWidth, index) {
+  const style = frame.style || "solid";
+  ctx.save();
+  ctx.strokeStyle = frame.accent;
+  ctx.lineWidth = borderWidth;
+  ctx.strokeRect(x + borderWidth / 2, y + borderWidth / 2, width - borderWidth, height - borderWidth);
+
+  if (style === "stars") {
+    drawPhotoFrameStickers(ctx, frame, x, y, width, height, [
+      [0.08, 0.08, 26, -0.2, "star"], [0.24, 0.06, 16, 0.18, "star"], [0.78, 0.08, 22, -0.12, "star"],
+      [0.94, 0.26, 18, 0.16, "star"], [0.08, 0.74, 20, -0.18, "star"], [0.82, 0.92, 24, 0.2, "star"]
+    ]);
+  }
+
+  if (style === "hearts") {
+    drawPhotoFrameStickers(ctx, frame, x, y, width, height, [
+      [0.1, 0.1, 20, -0.18, "heart"], [0.88, 0.12, 18, 0.16, "heart"],
+      [0.12, 0.86, 18, 0.2, "heart"], [0.9, 0.84, 22, -0.16, "heart"]
+    ]);
+  }
+
+  if (style === "checker") {
+    drawPhotoCheckerCorners(ctx, frame, x, y, width, height);
+  }
+
+  if (style === "ribbon") {
+    drawPhotoRibbonFrame(ctx, frame, x, y, width, height, index);
+  }
+
+  if (style === "notebook") {
+    drawPhotoNotebookFrame(ctx, frame, x, y, width, height);
+  }
+
+  if (style === "solid" && frame.id !== "classic") {
+    drawPhotoTapeLabel(ctx, frame, x, y, width);
+  }
+
+  ctx.restore();
+}
+
+function drawPhotoFrameStickers(ctx, frame, x, y, width, height, stickers) {
+  for (const [xRatio, yRatio, size, rotation, type] of stickers) {
+    drawSticker(ctx, {
+      x: x + width * xRatio,
+      y: y + height * yRatio,
+      type,
+      color: frame.accent,
+      size,
+      rotation,
+      alpha: 0.95,
+      strokeAlpha: 0
+    });
+  }
+}
+
+function drawPhotoCheckerCorners(ctx, frame, x, y, width, height) {
+  const block = 16;
+  ctx.fillStyle = frame.accent;
+  for (let i = 0; i < 5; i += 1) {
+    if (i % 2 === 0) {
+      ctx.fillRect(x + i * block, y, block, block);
+      ctx.fillRect(x + width - (i + 1) * block, y + height - block, block, block);
+    } else {
+      ctx.fillRect(x + i * block, y + block, block, block);
+      ctx.fillRect(x + width - (i + 1) * block, y + height - block * 2, block, block);
+    }
+  }
+}
+
+function drawPhotoRibbonFrame(ctx, frame, x, y, width, height, index) {
+  ctx.strokeStyle = withAlpha(frame.accent, 0.8);
+  ctx.lineWidth = 5;
+  ctx.setLineDash([18, 12]);
+  ctx.strokeRect(x + 14, y + 14, width - 28, height - 28);
+  ctx.setLineDash([]);
+  ctx.fillStyle = withAlpha(frame.accent, 0.72);
+  const ribbonY = index % 2 === 0 ? y + 10 : y + height - 24;
+  ctx.fillRect(x + width * 0.18, ribbonY, width * 0.64, 14);
+}
+
+function drawPhotoNotebookFrame(ctx, frame, x, y, width, height) {
+  ctx.strokeStyle = withAlpha(frame.accent, 0.36);
+  ctx.lineWidth = 2;
+  for (let lineY = y + 32; lineY < y + height - 18; lineY += 34) {
+    ctx.beginPath();
+    ctx.moveTo(x + 12, lineY);
+    ctx.lineTo(x + width - 12, lineY);
+    ctx.stroke();
+  }
+}
+
+function drawPhotoTapeLabel(ctx, frame, x, y, width) {
+  ctx.fillStyle = withAlpha(frame.accent, frame.id === "white" ? 0.34 : 0.22);
+  ctx.fillRect(x + width * 0.35, y + 10, width * 0.3, 18);
+  ctx.strokeStyle = frame.accent;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x + width * 0.35, y + 10, width * 0.3, 18);
+}
+
+function drawDecoratedFrameBackground(ctx, frame, width, height, margin, captionHeight) {
+  const style = frame.style || "solid";
+  if (style === "stars") {
+    drawBorderStickers(ctx, frame, width, height, [
+      [0.12, 0.06, 34, -0.2], [0.34, 0.045, 25, 0.18], [0.62, 0.07, 30, -0.12], [0.84, 0.05, 24, 0.24],
+      [0.08, 0.22, 26, 0.1], [0.91, 0.24, 34, -0.18], [0.1, 0.48, 24, 0.24], [0.88, 0.5, 28, -0.08],
+      [0.12, 0.76, 34, 0.16], [0.86, 0.72, 24, -0.22], [0.28, 0.94, 26, 0.2], [0.72, 0.93, 34, -0.16]
+    ], "star");
+    return;
+  }
+
+  if (style === "hearts") {
+    drawBorderStickers(ctx, frame, width, height, [
+      [0.15, 0.065, 16, -0.15], [0.5, 0.055, 13, 0.14], [0.82, 0.07, 16, -0.18],
+      [0.08, 0.32, 13, 0.2], [0.92, 0.34, 17, -0.1], [0.1, 0.66, 16, -0.18],
+      [0.9, 0.68, 13, 0.18], [0.32, 0.935, 15, 0.12], [0.68, 0.93, 16, -0.16]
+    ], "heart");
+    return;
+  }
+
+  if (style === "checker") {
+    drawCheckerTape(ctx, frame, width, height, margin);
+    return;
+  }
+
+  if (style === "ribbon") {
+    drawRibbonFrame(ctx, frame, width, height, margin, captionHeight);
+    return;
+  }
+
+  if (style === "notebook") {
+    drawNotebookLines(ctx, frame, width, height);
+  }
+}
+
+function drawBorderStickers(ctx, frame, width, height, points, type) {
+  for (const [xRatio, yRatio, size, rotation] of points) {
+    drawSticker(ctx, {
+      x: width * xRatio,
+      y: height * yRatio,
+      type,
+      color: frame.accent,
+      size,
+      rotation,
+      alpha: 0.92,
+      strokeAlpha: 0
+    });
+  }
+}
+
+function drawCheckerTape(ctx, frame, width, height, margin) {
+  const block = 18;
+  ctx.fillStyle = withAlpha(frame.accent, 0.86);
+  for (let x = margin - 18; x < width - margin + 18; x += block) {
+    if (Math.floor(x / block) % 2 === 0) {
+      ctx.fillRect(x, 22, block, block);
+      ctx.fillRect(x, height - 42, block, block);
+    }
+  }
+  for (let y = margin; y < height - margin; y += block) {
+    if (Math.floor(y / block) % 2 === 0) {
+      ctx.fillRect(22, y, block, block);
+      ctx.fillRect(width - 42, y, block, block);
+    }
+  }
+}
+
+function drawRibbonFrame(ctx, frame, width, height, margin, captionHeight) {
+  ctx.fillStyle = withAlpha(frame.accent, 0.18);
+  ctx.fillRect(margin - 18, captionHeight + 18, 16, height - captionHeight - margin - 36);
+  ctx.fillRect(width - margin + 2, captionHeight + 18, 16, height - captionHeight - margin - 36);
+  ctx.strokeStyle = withAlpha(frame.accent, 0.72);
+  ctx.lineWidth = 4;
+  ctx.setLineDash([14, 12]);
+  ctx.strokeRect(margin - 20, captionHeight + 16, width - margin * 2 + 40, height - captionHeight - margin - 32);
+  ctx.setLineDash([]);
+}
+
+function drawNotebookLines(ctx, frame, width, height) {
+  ctx.strokeStyle = withAlpha(frame.accent, 0.25);
+  ctx.lineWidth = 2;
+  for (let y = 56; y < height - 44; y += 38) {
+    ctx.beginPath();
+    ctx.moveTo(24, y);
+    ctx.lineTo(width - 24, y);
+    ctx.stroke();
+  }
 }
 
 function pickUpSketchPhoto() {
@@ -1475,6 +2028,10 @@ function bindEvents() {
   for (const button of elements.sketchLayoutButtons) {
     button.addEventListener("click", handleSketchLayoutClick);
   }
+  for (const button of elements.sketchFrameStyleButtons) {
+    button.addEventListener("click", handleSketchFrameStyleClick);
+  }
+  bindClick(elements.bgStyleButtons, "click", handleBackgroundStyleClick);
   bindClick(elements.sketchFilterToggle, "change", () => syncSketchFilterToggles(elements.sketchFilterToggle));
 
   bindClick(elements.startCamera, "click", startCamera);
@@ -1551,6 +2108,7 @@ function bindEvents() {
 function boot() {
   renderOptions();
   renderFourFrameOptions();
+  renderBackgroundStyleOptions();
   renderSketchFramePreview();
   renderSketchModePicker();
   renderSketchLayoutPicker();
