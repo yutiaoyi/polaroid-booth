@@ -790,8 +790,7 @@ function renderSketchFramePreview() {
   elements.sketchFramePreview.classList.add(`frame-style-${frame.id}`);
   elements.sketchFramePreview.classList.toggle("grid", sketchFlowState.layout === "grid");
   elements.sketchFramePreview.classList.toggle("landscape", sketchFlowState.ratio === "landscape");
-  elements.sketchFramePreview.style.color = frame.accent;
-  elements.sketchFramePreview.style.backgroundColor = frame.paper;
+  drawSketchFramePreviewCanvas(elements.sketchFramePreview, frame);
 }
 
 function renderSketchFrameStylePicker() {
@@ -1776,10 +1775,7 @@ function getSketchPhotoAspectRatio() {
   return sketchFlowState.ratio === "landscape" ? 4 / 3 : 3 / 4;
 }
 
-function renderSketchOutputStrip() {
-  const sketchOutputCanvas = elements.sketchOutputCanvas;
-  const ctx = sketchOutputCanvas.getContext("2d");
-  const frame = getSketchFrame();
+function getSketchOutputMetrics() {
   const outputLayout = getSketchOutputLayout();
   const aspectRatio = getSketchPhotoAspectRatio();
   const borderWidth = 8 * SKETCH_OUTPUT_SCALE;
@@ -1794,38 +1790,91 @@ function renderSketchOutputStrip() {
     : photoHeight * 4 + gap * 3;
   const height = Math.round(margin * 2 + captionHeight + gridHeight + 56 * SKETCH_OUTPUT_SCALE);
 
-  sketchOutputCanvas.width = width;
-  sketchOutputCanvas.height = height;
+  return {
+    outputLayout,
+    aspectRatio,
+    borderWidth,
+    margin,
+    gap,
+    width,
+    height,
+    photoWidth,
+    photoHeight,
+    captionHeight
+  };
+}
+
+function getSketchPhotoBox(metrics, index) {
+  const column = metrics.outputLayout === "grid" ? index % 2 : 0;
+  const row = metrics.outputLayout === "grid" ? Math.floor(index / 2) : index;
+  return {
+    x: metrics.margin + column * (metrics.photoWidth + metrics.gap),
+    y: metrics.margin + metrics.captionHeight + row * (metrics.photoHeight + metrics.gap),
+    width: metrics.photoWidth,
+    height: metrics.photoHeight
+  };
+}
+
+function drawSketchOutputBase(ctx, frame, metrics) {
   ctx.fillStyle = frame.paper;
-  ctx.fillRect(0, 0, width, height);
-  drawDecoratedFrameBackground(ctx, frame, width, height, margin, captionHeight);
+  ctx.fillRect(0, 0, metrics.width, metrics.height);
+  drawDecoratedFrameBackground(ctx, frame, metrics.width, metrics.height, metrics.margin, metrics.captionHeight);
   ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = borderWidth;
-  ctx.strokeRect(borderWidth / 2, borderWidth / 2, width - borderWidth, height - borderWidth);
+  ctx.lineWidth = metrics.borderWidth;
+  ctx.strokeRect(metrics.borderWidth / 2, metrics.borderWidth / 2, metrics.width - metrics.borderWidth, metrics.height - metrics.borderWidth);
+}
 
-  sketchFlowState.shots.forEach((shot, index) => {
-    const column = outputLayout === "grid" ? index % 2 : 0;
-    const row = outputLayout === "grid" ? Math.floor(index / 2) : index;
-    const x = margin + column * (photoWidth + gap);
-    const y = margin + captionHeight + row * (photoHeight + gap);
-    ctx.save();
-    const filter = getSketchFilter();
-    ctx.filter = shot.dataset?.sketchFilterApplied === "true" ? "none" : filter.css;
-    drawCoverImage(ctx, shot, x, y, photoWidth, photoHeight);
-    ctx.restore();
-    if (shot.dataset?.sketchFilterApplied !== "true") {
-      applySketchFilmGrade(ctx, filter, { x, y, width: photoWidth, height: photoHeight });
-    }
-    drawSketchPhotoFrame(ctx, frame, x, y, photoWidth, photoHeight, borderWidth, index);
-  });
-
+function drawSketchOutputCaption(ctx, frame, metrics) {
   ctx.fillStyle = frame.ink;
   ctx.font = `700 ${26 * SKETCH_OUTPUT_SCALE}px Comic Sans MS, cursive`;
   ctx.textAlign = "center";
-  ctx.fillText(outputLayout === "grid" ? "film life 2x2" : "film life 4x1", width / 2, margin + 24 * SKETCH_OUTPUT_SCALE);
+  ctx.fillText(metrics.outputLayout === "grid" ? "film life 2x2" : "film life 4x1", metrics.width / 2, metrics.margin + 24 * SKETCH_OUTPUT_SCALE);
   ctx.font = `700 ${18 * SKETCH_OUTPUT_SCALE}px Comic Sans MS, cursive`;
-  ctx.fillText(`${Math.round(photoWidth)} x ${Math.round(photoHeight)} ${getSketchRatioLabel()}`, width / 2, height - 28 * SKETCH_OUTPUT_SCALE);
-  drawGrain(ctx, width, height);
+  ctx.fillText(`${Math.round(metrics.photoWidth)} x ${Math.round(metrics.photoHeight)} ${getSketchRatioLabel()}`, metrics.width / 2, metrics.height - 28 * SKETCH_OUTPUT_SCALE);
+}
+
+function drawSketchFramePreviewCanvas(canvas, frame) {
+  const ctx = canvas.getContext("2d");
+  const metrics = getSketchOutputMetrics();
+  canvas.width = metrics.width;
+  canvas.height = metrics.height;
+  drawSketchOutputBase(ctx, frame, metrics);
+
+  for (let index = 0; index < 4; index += 1) {
+    const photoBox = getSketchPhotoBox(metrics, index);
+    ctx.fillStyle = "#8e8888";
+    ctx.fillRect(photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+    drawSketchPhotoFrame(ctx, frame, photoBox.x, photoBox.y, photoBox.width, photoBox.height, metrics.borderWidth, index);
+  }
+
+  drawSketchOutputCaption(ctx, frame, metrics);
+}
+
+function renderSketchOutputStrip() {
+  const sketchOutputCanvas = elements.sketchOutputCanvas;
+  const ctx = sketchOutputCanvas.getContext("2d");
+  const frame = getSketchFrame();
+  const metrics = getSketchOutputMetrics();
+
+  sketchOutputCanvas.width = metrics.width;
+  sketchOutputCanvas.height = metrics.height;
+  drawSketchOutputBase(ctx, frame, metrics);
+
+  sketchFlowState.shots.forEach((shot, index) => {
+    const photoBox = getSketchPhotoBox(metrics, index);
+    ctx.save();
+    const filter = getSketchFilter();
+    ctx.filter = shot.dataset?.sketchFilterApplied === "true" ? "none" : filter.css;
+    drawCoverImage(ctx, shot, photoBox.x, photoBox.y, photoBox.width, photoBox.height);
+    ctx.restore();
+    if (shot.dataset?.sketchFilterApplied !== "true") {
+      applySketchFilmGrade(ctx, filter, photoBox);
+    }
+    drawSketchPhotoFrame(ctx, frame, photoBox.x, photoBox.y, photoBox.width, photoBox.height, metrics.borderWidth, index);
+  });
+
+  drawSketchOutputCaption(ctx, frame, metrics);
+  drawGrain(ctx, metrics.width, metrics.height);
 }
 
 function renderSketchPrintPreview() {
@@ -1897,10 +1946,6 @@ function drawSketchPhotoFrame(ctx, frame, x, y, width, height, borderWidth, inde
 
   if (style === "notebook") {
     drawPhotoNotebookFrame(ctx, frame, x, y, width, height);
-  }
-
-  if (style === "solid" && frame.id !== "classic") {
-    drawPhotoTapeLabel(ctx, frame, x, y, width);
   }
 
   ctx.restore();

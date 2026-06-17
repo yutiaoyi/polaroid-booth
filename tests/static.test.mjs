@@ -111,6 +111,9 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /function drawDecoratedFrameBackground/);
   assert.match(script, /function drawBorderStickers/);
   assert.match(script, /function drawSketchPhotoFrame/);
+  assert.match(script, /function getSketchOutputMetrics/);
+  assert.match(script, /function drawSketchFramePreviewCanvas/);
+  assert.match(script, /function drawSketchOutputBase/);
   assert.match(script, /function drawPhotoFrameStickers/);
   assert.match(script, /function replaceSketchPortraitBackground/);
   assert.match(script, /function initPortraitSegmentation/);
@@ -142,7 +145,7 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /await captureSketchShot\(index\)/);
   assert.match(script, /return replaceSketchPortraitBackground\(source, index\)/);
   assert.match(script, /shot\.dataset\?\.sketchFilterApplied === "true" \? "none" : filter\.css/);
-  assert.match(script, /applySketchFilmGrade\(ctx, filter, \{ x, y, width: photoWidth, height: photoHeight \}\)/);
+  assert.match(script, /applySketchFilmGrade\(ctx, filter, photoBox\)/);
   assert.match(script, /const SKETCH_COUNTDOWN_TICK_MS = 700/);
   assert.match(script, /const SKETCH_BETWEEN_SHOTS_MS = 500/);
   assert.match(script, /const SKETCH_PRE_SHOT_PAUSE_MS = 300/);
@@ -150,8 +153,8 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /await delay\(SKETCH_PRE_SHOT_PAUSE_MS\)/);
   assert.match(script, /shot \$\{index \+ 1\} \/ 4/);
   assert.match(script, /saved \$\{sketchFlowState\.shots\.length\} \/ 4/);
-  assert.match(script, /drawDecoratedFrameBackground\(ctx, frame, width, height, margin, captionHeight\)/);
-  assert.match(script, /drawSketchPhotoFrame\(ctx, frame, x, y, photoWidth, photoHeight, borderWidth, index\)/);
+  assert.match(script, /drawDecoratedFrameBackground\(ctx, frame, metrics\.width, metrics\.height, metrics\.margin, metrics\.captionHeight\)/);
+  assert.match(script, /drawSketchPhotoFrame\(ctx, frame, photoBox\.x, photoBox\.y, photoBox\.width, photoBox\.height, metrics\.borderWidth, index\)/);
   assert.match(script, /style === "stars"/);
   assert.match(script, /elements\.sketchOutputCanvas\.addEventListener\("click", handleSketchPrintPreviewClick\)/);
   assert.match(script, /const outputCanvas = elements\.sketchOutputCanvas/);
@@ -243,7 +246,8 @@ test("sketch setup exposes multiple selectable frame styles", async () => {
   assert.match(script, /frame\.name/);
   assert.match(css, /\.frame-style-panel/);
   assert.match(css, /\.frame-style-button\.is-selected/);
-  assert.match(css, /\.selected-strip\.frame-style-star-pop::after/);
+  assert.match(script, /drawSketchOutputBase\(ctx, frame, metrics\)/);
+  assert.match(script, /drawSketchPhotoFrame\(ctx, frame, photoBox\.x, photoBox\.y, photoBox\.width, photoBox\.height, metrics\.borderWidth, index\)/);
   assert.match(css, /\.frame-style-star-pop/);
 });
 
@@ -365,8 +369,8 @@ test("sketch frame selection supports border themes, layouts, and aspect ratios"
   assert.match(css, /\.selected-strip\.grid/);
   assert.match(css, /\.selected-strip\.landscape/);
   assert.match(css, /\.selected-strip\.grid\.landscape/);
-  assert.match(css, /24\.75% \+ 1px/);
-  assert.match(css, /center \/ 100% 2px no-repeat/);
+  assert.match(script, /getSketchPhotoBox\(metrics, index\)/);
+  assert.match(script, /drawSketchOutputCaption\(ctx, frame, metrics\)/);
 });
 
 test("sketch choice page inherits the selected setup instead of reselecting filters", async () => {
