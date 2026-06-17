@@ -387,6 +387,8 @@ const sketchFlowState = {
   printTimers: []
 };
 
+const SKETCH_CAPTURE_SCALE = 2;
+const SKETCH_OUTPUT_SCALE = 3;
 const SKETCH_COUNTDOWN_TICK_MS = 700;
 const SKETCH_PRE_SHOT_PAUSE_MS = 300;
 const SKETCH_BETWEEN_SHOTS_MS = 500;
@@ -446,6 +448,7 @@ const elements = {
   sketchOutputCanvas: $("#sketchOutputCanvas"),
   sketchPrintCountdown: $("#sketchPrintCountdown"),
   sketchPickup: $("#sketchPickup"),
+  sketchPrintPreviewCanvas: $("#sketchPrintPreviewCanvas"),
   sketchFramePreview: $("#sketchFramePreview"),
   navTabs: document.querySelectorAll("[data-page-target]"),
   pages: document.querySelectorAll(".page-view"),
@@ -659,6 +662,10 @@ function goBackSketchStep(targetStep) {
   if (elements.sketchOutputCanvas) {
     elements.sketchOutputCanvas.classList.remove("is-delivered");
   }
+  if (elements.sketchPrintPreviewCanvas) {
+    const previewCtx = elements.sketchPrintPreviewCanvas.getContext("2d");
+    previewCtx.clearRect(0, 0, elements.sketchPrintPreviewCanvas.width, elements.sketchPrintPreviewCanvas.height);
+  }
   if (elements.sketchPickup) {
     elements.sketchPickup.disabled = true;
   }
@@ -705,7 +712,9 @@ function syncSketchLiveAspectRatio() {
 }
 
 function getSketchCaptureSize() {
-  return sketchFlowState.ratio === "landscape" ? { width: 1200, height: 900 } : { width: 900, height: 1200 };
+  return sketchFlowState.ratio === "landscape"
+    ? { width: 1200 * SKETCH_CAPTURE_SCALE, height: 900 * SKETCH_CAPTURE_SCALE }
+    : { width: 900 * SKETCH_CAPTURE_SCALE, height: 1200 * SKETCH_CAPTURE_SCALE };
 }
 
 function renderSketchSetupSummary() {
@@ -1517,8 +1526,9 @@ function useFourCutDemo() {
 
 async function startSketchCamera() {
   try {
+    const captureSize = getSketchCaptureSize();
     sketchFlowState.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 1280 } },
+      video: { facingMode: "user", width: { ideal: captureSize.width }, height: { ideal: captureSize.height } },
       audio: false
     });
     elements.sketchVideo.srcObject = sketchFlowState.stream;
@@ -1683,6 +1693,7 @@ function composePortraitBackground(source, mask, background, patternIndex = 0) {
 function showSketchPrint() {
   clearSketchPrintTimers();
   renderSketchOutputStrip();
+  renderSketchPrintPreview();
   showSketchStep("print");
   elements.sketchPickup.disabled = true;
   elements.sketchOutputCanvas.classList.remove("is-delivered");
@@ -1713,17 +1724,17 @@ function renderSketchOutputStrip() {
   const frame = getSketchFrame();
   const outputLayout = getSketchOutputLayout();
   const aspectRatio = getSketchPhotoAspectRatio();
-  const borderWidth = 8;
-  const margin = outputLayout === "grid" ? 42 : 34;
-  const gap = outputLayout === "grid" ? 26 : 20;
-  const width = outputLayout === "grid" ? 1080 : 520;
+  const borderWidth = 8 * SKETCH_OUTPUT_SCALE;
+  const margin = (outputLayout === "grid" ? 42 : 34) * SKETCH_OUTPUT_SCALE;
+  const gap = (outputLayout === "grid" ? 26 : 20) * SKETCH_OUTPUT_SCALE;
+  const width = (outputLayout === "grid" ? 1080 : 520) * SKETCH_OUTPUT_SCALE;
   const photoWidth = outputLayout === "grid" ? (width - margin * 2 - gap) / 2 : width - margin * 2;
   const photoHeight = photoWidth / aspectRatio;
-  const captionHeight = outputLayout === "grid" ? 56 : 36;
+  const captionHeight = (outputLayout === "grid" ? 56 : 36) * SKETCH_OUTPUT_SCALE;
   const gridHeight = outputLayout === "grid"
     ? photoHeight * 2 + gap
     : photoHeight * 4 + gap * 3;
-  const height = Math.round(margin * 2 + captionHeight + gridHeight + 56);
+  const height = Math.round(margin * 2 + captionHeight + gridHeight + 56 * SKETCH_OUTPUT_SCALE);
 
   sketchOutputCanvas.width = width;
   sketchOutputCanvas.height = height;
@@ -1751,12 +1762,50 @@ function renderSketchOutputStrip() {
   });
 
   ctx.fillStyle = frame.ink;
-  ctx.font = "700 26px Comic Sans MS, cursive";
+  ctx.font = `700 ${26 * SKETCH_OUTPUT_SCALE}px Comic Sans MS, cursive`;
   ctx.textAlign = "center";
-  ctx.fillText(outputLayout === "grid" ? "film life 2x2" : "film life 4x1", width / 2, margin + 24);
-  ctx.font = "700 18px Comic Sans MS, cursive";
-  ctx.fillText(`${Math.round(photoWidth)} x ${Math.round(photoHeight)} ${getSketchRatioLabel()}`, width / 2, height - 28);
+  ctx.fillText(outputLayout === "grid" ? "film life 2x2" : "film life 4x1", width / 2, margin + 24 * SKETCH_OUTPUT_SCALE);
+  ctx.font = `700 ${18 * SKETCH_OUTPUT_SCALE}px Comic Sans MS, cursive`;
+  ctx.fillText(`${Math.round(photoWidth)} x ${Math.round(photoHeight)} ${getSketchRatioLabel()}`, width / 2, height - 28 * SKETCH_OUTPUT_SCALE);
   drawGrain(ctx, width, height);
+}
+
+function renderSketchPrintPreview() {
+  if (!elements.sketchPrintPreviewCanvas) {
+    return;
+  }
+
+  const previewCanvas = elements.sketchPrintPreviewCanvas;
+  const ctx = previewCanvas.getContext("2d");
+  const outputCanvas = elements.sketchOutputCanvas;
+
+  if (!outputCanvas.width || !outputCanvas.height) {
+    const width = 460;
+    const height = 680;
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+    ctx.fillStyle = "#fbfbf7";
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = "#141414";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, width - 4, height - 4);
+    ctx.fillStyle = "rgba(23, 34, 50, 0.52)";
+    ctx.font = "700 18px Comic Sans MS, cursive";
+    ctx.textAlign = "center";
+    ctx.fillText("waiting for photos", width / 2, height / 2);
+    return;
+  }
+
+  previewCanvas.width = outputCanvas.width;
+  previewCanvas.height = outputCanvas.height;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(outputCanvas, 0, 0);
+}
+
+function handleSketchPrintPreviewClick(event) {
+  event.preventDefault();
+  renderSketchPrintPreview();
 }
 
 function drawSketchPhotoFrame(ctx, frame, x, y, width, height, borderWidth, index) {
@@ -1806,7 +1855,7 @@ function drawPhotoFrameStickers(ctx, frame, x, y, width, height, stickers) {
       y: y + height * yRatio,
       type,
       color: frame.accent,
-      size,
+      size: size * SKETCH_OUTPUT_SCALE,
       rotation,
       alpha: 0.95,
       strokeAlpha: 0
@@ -1815,7 +1864,7 @@ function drawPhotoFrameStickers(ctx, frame, x, y, width, height, stickers) {
 }
 
 function drawPhotoCheckerCorners(ctx, frame, x, y, width, height) {
-  const block = 16;
+  const block = 16 * SKETCH_OUTPUT_SCALE;
   ctx.fillStyle = frame.accent;
   for (let i = 0; i < 5; i += 1) {
     if (i % 2 === 0) {
@@ -1830,32 +1879,32 @@ function drawPhotoCheckerCorners(ctx, frame, x, y, width, height) {
 
 function drawPhotoRibbonFrame(ctx, frame, x, y, width, height, index) {
   ctx.strokeStyle = withAlpha(frame.accent, 0.8);
-  ctx.lineWidth = 5;
-  ctx.setLineDash([18, 12]);
-  ctx.strokeRect(x + 14, y + 14, width - 28, height - 28);
+  ctx.lineWidth = 5 * SKETCH_OUTPUT_SCALE;
+  ctx.setLineDash([18 * SKETCH_OUTPUT_SCALE, 12 * SKETCH_OUTPUT_SCALE]);
+  ctx.strokeRect(x + 14 * SKETCH_OUTPUT_SCALE, y + 14 * SKETCH_OUTPUT_SCALE, width - 28 * SKETCH_OUTPUT_SCALE, height - 28 * SKETCH_OUTPUT_SCALE);
   ctx.setLineDash([]);
   ctx.fillStyle = withAlpha(frame.accent, 0.72);
-  const ribbonY = index % 2 === 0 ? y + 10 : y + height - 24;
-  ctx.fillRect(x + width * 0.18, ribbonY, width * 0.64, 14);
+  const ribbonY = index % 2 === 0 ? y + 10 * SKETCH_OUTPUT_SCALE : y + height - 24 * SKETCH_OUTPUT_SCALE;
+  ctx.fillRect(x + width * 0.18, ribbonY, width * 0.64, 14 * SKETCH_OUTPUT_SCALE);
 }
 
 function drawPhotoNotebookFrame(ctx, frame, x, y, width, height) {
   ctx.strokeStyle = withAlpha(frame.accent, 0.36);
-  ctx.lineWidth = 2;
-  for (let lineY = y + 32; lineY < y + height - 18; lineY += 34) {
+  ctx.lineWidth = 2 * SKETCH_OUTPUT_SCALE;
+  for (let lineY = y + 32 * SKETCH_OUTPUT_SCALE; lineY < y + height - 18 * SKETCH_OUTPUT_SCALE; lineY += 34 * SKETCH_OUTPUT_SCALE) {
     ctx.beginPath();
-    ctx.moveTo(x + 12, lineY);
-    ctx.lineTo(x + width - 12, lineY);
+    ctx.moveTo(x + 12 * SKETCH_OUTPUT_SCALE, lineY);
+    ctx.lineTo(x + width - 12 * SKETCH_OUTPUT_SCALE, lineY);
     ctx.stroke();
   }
 }
 
 function drawPhotoTapeLabel(ctx, frame, x, y, width) {
   ctx.fillStyle = withAlpha(frame.accent, frame.id === "white" ? 0.34 : 0.22);
-  ctx.fillRect(x + width * 0.35, y + 10, width * 0.3, 18);
+  ctx.fillRect(x + width * 0.35, y + 10 * SKETCH_OUTPUT_SCALE, width * 0.3, 18 * SKETCH_OUTPUT_SCALE);
   ctx.strokeStyle = frame.accent;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(x + width * 0.35, y + 10, width * 0.3, 18);
+  ctx.lineWidth = 3 * SKETCH_OUTPUT_SCALE;
+  ctx.strokeRect(x + width * 0.35, y + 10 * SKETCH_OUTPUT_SCALE, width * 0.3, 18 * SKETCH_OUTPUT_SCALE);
 }
 
 function drawDecoratedFrameBackground(ctx, frame, width, height, margin, captionHeight) {
@@ -1900,7 +1949,7 @@ function drawBorderStickers(ctx, frame, width, height, points, type) {
       y: height * yRatio,
       type,
       color: frame.accent,
-      size,
+      size: size * SKETCH_OUTPUT_SCALE,
       rotation,
       alpha: 0.92,
       strokeAlpha: 0
@@ -1909,40 +1958,40 @@ function drawBorderStickers(ctx, frame, width, height, points, type) {
 }
 
 function drawCheckerTape(ctx, frame, width, height, margin) {
-  const block = 18;
+  const block = 18 * SKETCH_OUTPUT_SCALE;
   ctx.fillStyle = withAlpha(frame.accent, 0.86);
-  for (let x = margin - 18; x < width - margin + 18; x += block) {
+  for (let x = margin - 18 * SKETCH_OUTPUT_SCALE; x < width - margin + 18 * SKETCH_OUTPUT_SCALE; x += block) {
     if (Math.floor(x / block) % 2 === 0) {
-      ctx.fillRect(x, 22, block, block);
-      ctx.fillRect(x, height - 42, block, block);
+      ctx.fillRect(x, 22 * SKETCH_OUTPUT_SCALE, block, block);
+      ctx.fillRect(x, height - 42 * SKETCH_OUTPUT_SCALE, block, block);
     }
   }
   for (let y = margin; y < height - margin; y += block) {
     if (Math.floor(y / block) % 2 === 0) {
-      ctx.fillRect(22, y, block, block);
-      ctx.fillRect(width - 42, y, block, block);
+      ctx.fillRect(22 * SKETCH_OUTPUT_SCALE, y, block, block);
+      ctx.fillRect(width - 42 * SKETCH_OUTPUT_SCALE, y, block, block);
     }
   }
 }
 
 function drawRibbonFrame(ctx, frame, width, height, margin, captionHeight) {
   ctx.fillStyle = withAlpha(frame.accent, 0.18);
-  ctx.fillRect(margin - 18, captionHeight + 18, 16, height - captionHeight - margin - 36);
-  ctx.fillRect(width - margin + 2, captionHeight + 18, 16, height - captionHeight - margin - 36);
+  ctx.fillRect(margin - 18 * SKETCH_OUTPUT_SCALE, captionHeight + 18 * SKETCH_OUTPUT_SCALE, 16 * SKETCH_OUTPUT_SCALE, height - captionHeight - margin - 36 * SKETCH_OUTPUT_SCALE);
+  ctx.fillRect(width - margin + 2 * SKETCH_OUTPUT_SCALE, captionHeight + 18 * SKETCH_OUTPUT_SCALE, 16 * SKETCH_OUTPUT_SCALE, height - captionHeight - margin - 36 * SKETCH_OUTPUT_SCALE);
   ctx.strokeStyle = withAlpha(frame.accent, 0.72);
-  ctx.lineWidth = 4;
-  ctx.setLineDash([14, 12]);
-  ctx.strokeRect(margin - 20, captionHeight + 16, width - margin * 2 + 40, height - captionHeight - margin - 32);
+  ctx.lineWidth = 4 * SKETCH_OUTPUT_SCALE;
+  ctx.setLineDash([14 * SKETCH_OUTPUT_SCALE, 12 * SKETCH_OUTPUT_SCALE]);
+  ctx.strokeRect(margin - 20 * SKETCH_OUTPUT_SCALE, captionHeight + 16 * SKETCH_OUTPUT_SCALE, width - margin * 2 + 40 * SKETCH_OUTPUT_SCALE, height - captionHeight - margin - 32 * SKETCH_OUTPUT_SCALE);
   ctx.setLineDash([]);
 }
 
 function drawNotebookLines(ctx, frame, width, height) {
   ctx.strokeStyle = withAlpha(frame.accent, 0.25);
-  ctx.lineWidth = 2;
-  for (let y = 56; y < height - 44; y += 38) {
+  ctx.lineWidth = 2 * SKETCH_OUTPUT_SCALE;
+  for (let y = 56 * SKETCH_OUTPUT_SCALE; y < height - 44 * SKETCH_OUTPUT_SCALE; y += 38 * SKETCH_OUTPUT_SCALE) {
     ctx.beginPath();
-    ctx.moveTo(24, y);
-    ctx.lineTo(width - 24, y);
+    ctx.moveTo(24 * SKETCH_OUTPUT_SCALE, y);
+    ctx.lineTo(width - 24 * SKETCH_OUTPUT_SCALE, y);
     ctx.stroke();
   }
 }
@@ -2022,6 +2071,7 @@ function bindEvents() {
   elements.sketchUploadInput.addEventListener("change", uploadSketchPhoto);
   elements.sketchStartShoot.addEventListener("click", startSketchShoot);
   elements.sketchPickup.addEventListener("click", pickUpSketchPhoto);
+  elements.sketchOutputCanvas.addEventListener("click", handleSketchPrintPreviewClick);
   for (const card of elements.sketchModeCards) {
     card.addEventListener("click", handleSketchModeClick);
   }

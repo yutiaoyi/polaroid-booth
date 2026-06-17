@@ -71,6 +71,7 @@ test("four cut booth exposes capture, frame selection, output, and download cont
     "sketchStartShoot",
     "sketchPrint",
     "sketchOutputCanvas",
+    "sketchPrintPreviewCanvas",
     "sketchPickup",
     "fourCutVideo",
     "fourCutCanvas",
@@ -99,6 +100,8 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /async function startSketchCamera/);
   assert.match(script, /async function startSketchShoot/);
   assert.match(script, /function showSketchPrint/);
+  assert.match(script, /function renderSketchPrintPreview/);
+  assert.match(script, /function handleSketchPrintPreviewClick/);
   assert.match(script, /function syncSketchLiveAspectRatio/);
   assert.match(script, /function getSketchCaptureSize/);
   assert.match(script, /function renderSketchFrameStylePicker/);
@@ -113,7 +116,10 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /function applySketchFilmGrade/);
   assert.match(script, new RegExp('style\\.aspectRatio = getSketchRatioLabel\\(\\)\\.replace\\(":", " / "\\)'));
   assert.match(script, /captureSource\(elements\.sketchVideo, captureSize\.width, captureSize\.height\)/);
-  assert.match(script, /sketchFlowState\.ratio === "landscape"\s*\?\s*\{ width: 1200, height: 900 \}/);
+  assert.match(script, /const SKETCH_CAPTURE_SCALE = 2/);
+  assert.match(script, /const SKETCH_OUTPUT_SCALE = 3/);
+  assert.match(script, /width: 1200 \* SKETCH_CAPTURE_SCALE/);
+  assert.match(script, /height: 1200 \* SKETCH_CAPTURE_SCALE/);
   assert.match(css, /\.live-machine\.is-landscape \.sketch-video/);
   assert.match(css, /\.live-machine\.is-landscape \.sketch-live-canvas/);
   assert.match(html, /id="sketchShootProgress"/);
@@ -133,6 +139,15 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /drawDecoratedFrameBackground\(ctx, frame, width, height, margin, captionHeight\)/);
   assert.match(script, /drawSketchPhotoFrame\(ctx, frame, x, y, photoWidth, photoHeight, borderWidth, index\)/);
   assert.match(script, /style === "stars"/);
+  assert.match(script, /elements\.sketchOutputCanvas\.addEventListener\("click", handleSketchPrintPreviewClick\)/);
+  assert.match(script, /const outputCanvas = elements\.sketchOutputCanvas/);
+  assert.match(script, /previewCanvas\.width = outputCanvas\.width/);
+  assert.match(script, /previewCanvas\.height = outputCanvas\.height/);
+  assert.match(script, /ctx\.drawImage\(outputCanvas, 0, 0\)/);
+  assert.match(css, /\.print-layout \.delivery-sign[\s\S]*overflow:\s*hidden/);
+  assert.match(css, /\.print-layout \.delivery-sign span/);
+  assert.match(css, /delivery-sign::before[\s\S]*rgba\(255,255,255,0\.86\)/);
+  assert.match(css, /pickup-button::before[\s\S]*rgba\(255,255,255,0\.88\)/);
   assert.doesNotMatch(script, /if \(!sketchFlowState\.stream\) \{\s*useSketchDemo\(\);\s*return;\s*\}/);
   assert.match(script, /sketchFlowState\.shots\.length === 4/);
   assert.match(script, /sketchOutputCanvas\.toDataURL\("image\/png"\)/);
@@ -172,6 +187,10 @@ test("sketch camera supports portrait background replacement", async () => {
   assert.match(css, /\.bg-style-panel/);
   assert.match(css, /\.bg-style-button\.star-bg/);
   assert.match(css, /\.bg-style-button\.flash-bg/);
+  assert.match(css, /\.print-layout \.pickup-button/);
+  assert.match(css, /\.print-preview-panel/);
+  assert.match(css, /\.print-preview-panel canvas/);
+  assert.match(css, /\.printer-window canvas/);
 });
 
 test("sketch setup exposes multiple selectable frame styles", async () => {
