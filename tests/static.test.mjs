@@ -68,6 +68,8 @@ test("four cut booth exposes capture, frame selection, output, and download cont
     "sketchUploadInput",
     "sketchCamera",
     "sketchVideo",
+    "sketchZoomRange",
+    "sketchZoomValue",
     "sketchStartShoot",
     "sketchPrint",
     "sketchOutputCanvas",
@@ -115,14 +117,26 @@ test("four cut page follows the sketch booth state flow", async () => {
   assert.match(script, /function composePortraitBackground/);
   assert.match(script, /function applySketchFilmGrade/);
   assert.match(script, new RegExp('style\\.aspectRatio = getSketchRatioLabel\\(\\)\\.replace\\(":", " / "\\)'));
-  assert.match(script, /captureSource\(elements\.sketchVideo, captureSize\.width, captureSize\.height\)/);
+  assert.match(script, /captureSource\(elements\.sketchVideo, captureSize\.width, captureSize\.height, sketchFlowState\.zoom\)/);
   assert.match(script, /const SKETCH_CAPTURE_SCALE = 2/);
   assert.match(script, /const SKETCH_OUTPUT_SCALE = 3/);
+  assert.match(script, /const SKETCH_MIN_ZOOM = 1/);
+  assert.match(script, /const SKETCH_MAX_ZOOM = 3/);
+  assert.match(script, /function setSketchZoom/);
+  assert.match(script, /function syncSketchZoomControls/);
+  assert.match(script, /function getZoomedDrawRect/);
+  assert.match(script, /captureSource\(image, captureSize\.width, captureSize\.height, sketchFlowState\.zoom\)/);
   assert.match(script, /width: 1200 \* SKETCH_CAPTURE_SCALE/);
   assert.match(script, /height: 1200 \* SKETCH_CAPTURE_SCALE/);
-  assert.match(css, /\.live-machine\.is-landscape \.sketch-video/);
-  assert.match(css, /\.live-machine\.is-landscape \.sketch-live-canvas/);
+  assert.match(css, /\.live-machine\.is-landscape \.live-preview-window/);
+  assert.match(css, /\.live-preview-window/);
+  assert.match(css, /overflow:\s*hidden/);
+  assert.match(css, /\.zoom-control/);
+  assert.match(css, /\.zoom-range/);
+  assert.match(css, /\.zoom-value/);
   assert.match(html, /id="sketchShootProgress"/);
+  assert.match(html, /id="sketchZoomRange"/);
+  assert.match(html, /id="sketchZoomValue"/);
   assert.match(html, /start 4 shots/);
   assert.match(script, /runSketchCountdown\(index\)/);
   assert.match(script, /await captureSketchShot\(index\)/);
@@ -186,6 +200,9 @@ test("sketch camera supports portrait background replacement", async () => {
   assert.match(script, /data-bg-style/);
   assert.match(css, /\.bg-style-panel/);
   assert.match(css, /\.bg-style-button\.star-bg/);
+  assert.match(css, /\.bg-style-button\.star-bg::before/);
+  assert.match(css, /polygon points/);
+  assert.doesNotMatch(css, /radial-gradient\(circle at 16% 45%/);
   assert.match(css, /\.bg-style-button\.flash-bg/);
   assert.match(css, /\.print-layout \.pickup-button/);
   assert.match(css, /\.print-preview-panel/);
@@ -304,6 +321,8 @@ test("sketch setup only chooses layout ratio before camera filters", async () =>
   assert.match(script, /blueWash\.addColorStop\(0, "#294b73"\)/);
   assert.match(css, /\.filter-mode-panel/);
   assert.match(css, /\.live-filter-panel/);
+  assert.match(html, /class="filter-style-note">Filter/);
+  assert.match(css, /\.filter-style-note/);
   assert.match(css, /grid-auto-flow: column/);
   assert.match(css, /overflow-x: auto/);
   assert.match(css, /\.live-machine\.has-grain-filter::after/);
@@ -463,9 +482,10 @@ test("camera previews and captured video frames are mirrored", async () => {
   assert.match(css, /scaleX\(-1\)/);
   assert.match(script, /function isVideoSource/);
   assert.match(script, /elements\.video\.style\.transform = "scaleX\(-1\)"/);
-  assert.match(script, /elements\.sketchVideo\.style\.transform = "scaleX\(-1\) rotate\(-1deg\)"/);
+  assert.match(script, /elements\.sketchVideo\.style\.transform = getSketchZoomTransform\(true\)/);
+  assert.match(script, /return `\$\{mirror\}scale\(\$\{sketchFlowState\.zoom\}\)`/);
   assert.match(script, /elements\.fourCutVideo\.style\.transform = "scaleX\(-1\)"/);
-  assert.match(script, /rawCtx\.translate\(width, 0\)/);
+  assert.match(script, /rawCtx\.translate\(drawRect\.x \+ drawRect\.width, drawRect\.y\)/);
   assert.match(script, /rawCtx\.scale\(-1, 1\)/);
 });
 

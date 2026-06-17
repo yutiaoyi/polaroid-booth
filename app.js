@@ -382,6 +382,7 @@ const sketchFlowState = {
   color: true,
   filterId: "color",
   backgroundStyleId: "none",
+  zoom: 1,
   stream: null,
   shots: [],
   printTimers: []
@@ -389,6 +390,8 @@ const sketchFlowState = {
 
 const SKETCH_CAPTURE_SCALE = 2;
 const SKETCH_OUTPUT_SCALE = 3;
+const SKETCH_MIN_ZOOM = 1;
+const SKETCH_MAX_ZOOM = 3;
 const SKETCH_COUNTDOWN_TICK_MS = 700;
 const SKETCH_PRE_SHOT_PAUSE_MS = 300;
 const SKETCH_BETWEEN_SHOTS_MS = 500;
@@ -441,6 +444,8 @@ const elements = {
   sketchVideo: $("#sketchVideo"),
   sketchLiveMachine: $(".live-machine"),
   sketchLiveCanvas: $("#sketchLiveCanvas"),
+  sketchZoomRange: $("#sketchZoomRange"),
+  sketchZoomValue: $("#sketchZoomValue"),
   sketchStartShoot: $("#sketchStartShoot"),
   sketchShootCountdown: $("#sketchShootCountdown"),
   sketchShootProgress: $("#sketchShootProgress"),
@@ -630,6 +635,7 @@ function showSketchStep(step) {
   }
   if (step === "camera") {
     syncSketchLiveAspectRatio();
+    syncSketchZoomControls();
   }
   window.scrollTo({ top: 0, behavior: "auto" });
 }
@@ -695,7 +701,7 @@ function applySketchLiveFilter() {
   const filter = getSketchFilter();
   if (elements.sketchVideo) {
     elements.sketchVideo.style.filter = filter.css;
-    elements.sketchVideo.style.transform = "scaleX(-1) rotate(-1deg)";
+    elements.sketchVideo.style.transform = getSketchZoomTransform(true);
   }
   elements.sketchLiveMachine?.classList.toggle("has-grain-filter", Boolean(filter.grain));
 }
@@ -715,6 +721,43 @@ function getSketchCaptureSize() {
   return sketchFlowState.ratio === "landscape"
     ? { width: 1200 * SKETCH_CAPTURE_SCALE, height: 900 * SKETCH_CAPTURE_SCALE }
     : { width: 900 * SKETCH_CAPTURE_SCALE, height: 1200 * SKETCH_CAPTURE_SCALE };
+}
+
+function formatSketchZoom(zoom) {
+  return `${zoom.toFixed(1)}x`;
+}
+
+function getBoundedSketchZoom(value) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return 1;
+  }
+  return Math.min(SKETCH_MAX_ZOOM, Math.max(SKETCH_MIN_ZOOM, numericValue));
+}
+
+function getSketchZoomTransform(isMirrored = false) {
+  const mirror = isMirrored ? "scaleX(-1) " : "";
+  return `${mirror}scale(${sketchFlowState.zoom})`;
+}
+
+function syncSketchZoomControls() {
+  if (elements.sketchZoomRange) {
+    elements.sketchZoomRange.value = String(sketchFlowState.zoom);
+  }
+  if (elements.sketchZoomValue) {
+    elements.sketchZoomValue.textContent = formatSketchZoom(sketchFlowState.zoom);
+  }
+  if (elements.sketchVideo) {
+    elements.sketchVideo.style.transform = getSketchZoomTransform(true);
+  }
+  if (elements.sketchLiveCanvas) {
+    elements.sketchLiveCanvas.style.transform = getSketchZoomTransform(false);
+  }
+}
+
+function setSketchZoom(value) {
+  sketchFlowState.zoom = getBoundedSketchZoom(value);
+  syncSketchZoomControls();
 }
 
 function renderSketchSetupSummary() {
@@ -1236,21 +1279,36 @@ function renderPhoto(source) {
   setPhotoMode(true);
 }
 
-function captureSource(source, width, height) {
+function getZoomedDrawRect(width, height, zoom = 1) {
+  const boundedZoom = getBoundedSketchZoom(zoom);
+  const drawWidth = width * boundedZoom;
+  const drawHeight = height * boundedZoom;
+  return {
+    x: (width - drawWidth) / 2,
+    y: (height - drawHeight) / 2,
+    width: drawWidth,
+    height: drawHeight
+  };
+}
+
+function captureSource(source, width, height, zoom = 1) {
   const rawPhoto = document.createElement("canvas");
   const rawCtx = rawPhoto.getContext("2d");
+  const drawRect = getZoomedDrawRect(width, height, zoom);
   rawPhoto.width = width;
   rawPhoto.height = height;
+  rawCtx.fillStyle = "#f7f7f1";
+  rawCtx.fillRect(0, 0, width, height);
   if (isVideoSource(source)) {
     rawCtx.save();
-    rawCtx.translate(width, 0);
+    rawCtx.translate(drawRect.x + drawRect.width, drawRect.y);
     rawCtx.scale(-1, 1);
-    drawCoverImage(rawCtx, source, 0, 0, width, height);
+    drawCoverImage(rawCtx, source, 0, 0, drawRect.width, drawRect.height);
     rawCtx.restore();
     return rawPhoto;
   }
 
-  drawCoverImage(rawCtx, source, 0, 0, width, height);
+  drawCoverImage(rawCtx, source, drawRect.x, drawRect.y, drawRect.width, drawRect.height);
   return rawPhoto;
 }
 
@@ -1532,7 +1590,7 @@ async function startSketchCamera() {
       audio: false
     });
     elements.sketchVideo.srcObject = sketchFlowState.stream;
-    elements.sketchVideo.style.transform = "scaleX(-1) rotate(-1deg)";
+    syncSketchZoomControls();
     await elements.sketchVideo.play();
     renderSketchSetupSummary();
     syncSketchLiveAspectRatio();
@@ -1579,7 +1637,7 @@ async function captureSketchShot(index) {
   let source;
   if (sketchFlowState.stream) {
     const captureSize = getSketchCaptureSize();
-    source = captureSource(elements.sketchVideo, captureSize.width, captureSize.height);
+    source = captureSource(elements.sketchVideo, captureSize.width, captureSize.height, sketchFlowState.zoom);
   } else {
     source = createFourCutDemoShot(index);
   }
@@ -1615,7 +1673,7 @@ function uploadSketchPhoto(event) {
   image.onload = async () => {
     const captureSize = getSketchCaptureSize();
     elements.sketchShootProgress.textContent = "processing background";
-    const source = captureSource(image, captureSize.width, captureSize.height);
+    const source = captureSource(image, captureSize.width, captureSize.height, sketchFlowState.zoom);
     sketchFlowState.shots = await processSketchShotSources([source, source, source, source]);
     elements.sketchShootProgress.textContent = "printing";
     showSketchPrint();
@@ -2069,6 +2127,7 @@ function bindEvents() {
   elements.sketchTakePhotoEntry.addEventListener("click", startSketchCamera);
   elements.sketchUploadEntry.addEventListener("click", () => elements.sketchUploadInput.click());
   elements.sketchUploadInput.addEventListener("change", uploadSketchPhoto);
+  elements.sketchZoomRange.addEventListener("input", (event) => setSketchZoom(event.target.value));
   elements.sketchStartShoot.addEventListener("click", startSketchShoot);
   elements.sketchPickup.addEventListener("click", pickUpSketchPhoto);
   elements.sketchOutputCanvas.addEventListener("click", handleSketchPrintPreviewClick);

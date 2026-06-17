@@ -1532,6 +1532,9 @@ h2 {
 .live-filter-panel {
   left: 50%;
   top: 626px;
+  grid-template-columns: 86px minmax(0, 1fr);
+  align-items: center;
+  justify-items: stretch;
   width: 700px;
   transform: translateX(-50%);
 }
@@ -2284,34 +2287,113 @@ h2 {
   top: 260px;
 }
 
-.sketch-video,
-.sketch-live-canvas {
+.live-preview-window {
+  position: relative;
   width: 300px;
-  height: auto;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
-  border: none;
   border-radius: 6px 4px 8px 5px;
   outline: 4px solid transparent;
   background: #eee;
+  overflow: hidden;
   box-shadow:
     0 0 0 4px #141414,
     6px 8px 0 rgba(20, 20, 20, 0.14);
   transform: rotate(-1deg);
 }
 
-.live-machine.is-landscape .sketch-video,
-.live-machine.is-landscape .sketch-live-canvas {
+.sketch-video,
+.sketch-live-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: none;
+  border-radius: inherit;
+  background: #eee;
+  transform-origin: center center;
+}
+
+.live-machine.is-landscape .live-preview-window {
   width: 410px;
   aspect-ratio: 4 / 3;
 }
 
 .sketch-video.is-camera {
-  transform: scaleX(-1) rotate(-1deg);
+  transform: scaleX(-1);
 }
 
 .sketch-live-canvas {
   display: none;
+}
+
+.zoom-control {
+  position: absolute;
+  left: 270px;
+  top: 586px;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 10px;
+  width: 330px;
+  min-height: 54px;
+  padding: 8px 18px;
+  background: rgba(255, 255, 255, 0.72);
+  transform: rotate(-0.8deg);
+}
+
+#sketchCamera .machine-layout:has(.live-machine.is-landscape) .zoom-control {
+  left: 272px;
+  top: 536px;
+}
+
+.zoom-value {
+  color: #172232;
+  font-family: var(--doodle-font);
+  font-size: 23px;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+}
+
+.zoom-range {
+  width: 100%;
+  height: 32px;
+  accent-color: #172232;
+  cursor: pointer;
+}
+
+.zoom-range::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(90deg, #172232 0 2px, transparent 2px 14px),
+    linear-gradient(#172232, #172232);
+}
+
+.zoom-range::-webkit-slider-thumb {
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  border: 3px solid #172232;
+  border-radius: 50%;
+  background: #fff;
+  appearance: none;
+}
+
+.zoom-range::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: #172232;
+}
+
+.zoom-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #172232;
+  border-radius: 50%;
+  background: #fff;
 }
 
 .shoot-countdown {
@@ -2518,6 +2600,7 @@ h2 {
   width: 700px;
 }
 
+.filter-style-note,
 .bg-style-note {
   font-family: var(--hand-font);
   font-size: 18px;
@@ -2574,15 +2657,22 @@ h2 {
 }
 
 .bg-style-button.star-bg {
-  background:
-    radial-gradient(circle at 16% 45%, #111 0 4px, transparent 5px),
-    radial-gradient(circle at 48% 28%, #111 0 6px, transparent 7px),
-    radial-gradient(circle at 78% 60%, #111 0 5px, transparent 6px),
-    #f8faf6;
+  position: relative;
+  overflow: hidden;
+  background: #f8faf6;
 }
 
-.bg-style-button.star-bg::after {
+.bg-style-button.star-bg::before {
   content: "";
+  position: absolute;
+  inset: 5px 8px;
+  pointer-events: none;
+  background: center / 100% 100% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 32'%3E%3Cpolygon points='13,3 16,11 25,11 18,16 21,25 13,20 5,25 8,16 1,11 10,11' fill='%23111111'/%3E%3Cpolygon points='47,1 51,11 62,11 53,17 56,29 47,22 38,29 41,17 32,11 43,11' fill='%23111111'/%3E%3Cpolygon points='82,6 85,14 94,14 87,19 90,28 82,23 74,28 77,19 70,14 79,14' fill='%23111111'/%3E%3C/svg%3E");
+}
+
+.bg-style-button.star-bg span {
+  position: relative;
+  z-index: 1;
 }
 
 .bg-style-button.flash-bg {
@@ -2802,6 +2892,7 @@ h2 {
   .live-filter-panel {
     left: 50%;
     top: 562px;
+    grid-template-columns: 74px minmax(0, 1fr);
     width: 350px;
     transform: translateX(-50%);
   }
@@ -3030,8 +3121,22 @@ h2 {
     font-size: 16px;
   }
 
-  .live-machine.is-landscape .sketch-video,
-  .live-machine.is-landscape .sketch-live-canvas {
+  .zoom-control,
+  #sketchCamera .machine-layout:has(.live-machine.is-landscape) .zoom-control {
+    left: 50%;
+    top: 546px;
+    width: min(312px, calc(100vw - 54px));
+    min-height: 50px;
+    grid-template-columns: 58px 1fr;
+    padding: 7px 14px;
+    transform: translateX(-50%) rotate(-0.8deg);
+  }
+
+  .zoom-value {
+    font-size: 20px;
+  }
+
+  .live-machine.is-landscape .live-preview-window {
     width: 260px;
   }
 

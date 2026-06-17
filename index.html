@@ -259,12 +259,15 @@
           <div class="eye-label">eye<br>level →</div>
           <div class="choice-summary live-summary doodle-box" id="sketchLiveSummary" aria-live="polite"></div>
           <div class="frame-machine live-machine doodle-box">
+            <div class="live-preview-window">
               <video id="sketchVideo" class="sketch-video is-camera" autoplay playsinline muted></video>
-            <canvas id="sketchLiveCanvas" class="sketch-live-canvas"></canvas>
+              <canvas id="sketchLiveCanvas" class="sketch-live-canvas"></canvas>
+            </div>
             <div class="shoot-countdown" id="sketchShootCountdown"></div>
           </div>
           <div class="filter-toggle filter-mode-panel live-filter-panel" aria-label="选择拍摄滤镜">
             <input id="sketchFilterToggle" type="checkbox" checked hidden>
+            <div class="filter-style-note">Filter</div>
             <div class="filter-mode-actions">
               <button class="filter-mode-card" type="button" data-sketch-filter="bw" aria-pressed="false">
                 <span class="filter-mode-label">B&amp;W</span>
@@ -339,6 +342,10 @@
           <div class="bg-style-panel doodle-box" id="bgStylePanel" aria-label="选择背景替换">
             <div class="bg-style-note">Background</div>
             <div class="bg-style-buttons" id="bgStyleButtons"></div>
+          </div>
+          <div class="zoom-control doodle-box" aria-label="调节焦距">
+            <span class="zoom-value" id="sketchZoomValue">1.0x</span>
+            <input id="sketchZoomRange" class="zoom-range" type="range" min="1" max="3" step="0.1" value="1" aria-label="焦距缩放">
           </div>
           <div class="shoot-progress" id="sketchShootProgress" aria-live="polite">ready for 4 shots</div>
           <div class="side-console doodle-box">
